@@ -1,0 +1,39 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+
+# Playwright
+playwright-report/
+test-results/
+
+# Build/package artifacts
+*.zip
+public/videos/professional-10-minute-vsl.mp4
+
+# Local dev data (back office JSON may contain PII; never commit)
+.data/
+vault/
+*.local
+.env
+.env.*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

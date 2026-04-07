@@ -1,0 +1,12 @@
+# Copy to vault/cpanel.env and fill in. vault/ is gitignored.
+
+CPANEL_HOST=your-server.host.tld
+CPANEL_PORT=2083
+CPANEL_USER=your_cpanel_username
+CPANEL_API_TOKEN=your_api_token_from_cpanel
+# Optional: subdirectory under home (default public_html)
+# CPANEL_UPLOAD_DIR=public_html
+# Optional: if TLS fails locally (not recommended)
+# CPANEL_INSECURE_SSL=1
+# Skip files over this size in MiB (default 100). Use 0 to attempt all files (large uploads may timeout).
+# CPANEL_MAX_UPLOAD_MB=100

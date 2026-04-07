@@ -1,0 +1,19 @@
+# Copy to vault/github.env (create vault/ if needed). File is gitignored.
+#
+# GitHub does not let anyone re-download an existing token. If you lost it,
+# revoke the old one at GitHub → Settings → Developer settings → Tokens, then create a new PAT.
+#
+# Classic PAT: https://github.com/settings/tokens — scopes e.g. repo (private repos), read:org if needed.
+# Fine-grained: https://github.com/settings/personal-access-tokens — pick repos + permissions.
+#
+# For git over HTTPS, many tools use:
+#   git config credential.helper osxkeychain   # macOS
+#   # then use https://github.com and username + PAT as password when prompted
+#
+# SSH (alternative to HTTPS + token): generate a key, add the *public* key at
+#   https://github.com/settings/keys
+# Then use remote URL git@github.com:OWNER/REPO.git
+
+GITHUB_TOKEN=
+# Optional — some CLIs use this
+# GITHUB_USERNAME=

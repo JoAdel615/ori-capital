@@ -1,0 +1,11 @@
+# Ori Capital — client-side routing (Apache / LiteSpeed on cPanel)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  # Do not send /api/* to the SPA — static hosting has no Node API; 404 is clearer than HTML 200.
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>

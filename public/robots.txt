@@ -1,0 +1,5 @@
+# Production host should match VITE_SITE_URL (default https://oricapital.com).
+User-agent: *
+Disallow: /admin
+
+Sitemap: https://oricapital.com/sitemap.xml

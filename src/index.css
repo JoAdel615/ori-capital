@@ -1,0 +1,424 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-display: "Instrument Sans", "DM Sans", system-ui, sans-serif;
+  --color-ori-black: #0a0a0b;
+  --color-ori-charcoal: #141416;
+  --color-ori-surface: #1b1b18;
+  --color-ori-border: #2a2a2e;
+  --color-ori-muted: #71717a;
+  --color-ori-foreground: #fafafa;
+  --color-ori-accent: #c9f31d;
+  --color-ori-accent-dim: #a3c918;
+  --color-ori-glow: rgba(201, 243, 29, 0.12);
+  /* Full-bleed section bands: warm neutral (no blue cast) so it pairs with black + lime accent */
+  --color-ori-section-alt: #161513;
+  /* Design system: section rhythm + layout */
+  --ori-section-py: 3rem;
+  --ori-section-py-md: 4rem;
+  --ori-section-py-lg: 6rem;
+  --ori-section-gap: 1rem;
+  --ori-container-max: 72rem;
+  --ori-readable-max: 65ch;
+  --ori-card-pad: 1.5rem;
+  --ori-card-pad-lg: 2rem;
+  --ori-radius-card: 0.75rem;
+  --ori-radius-card-lg: 1rem;
+  --ori-border: var(--color-ori-border);
+  --ori-surface: var(--color-ori-surface);
+}
+
+/* Light theme: override Ori tokens (Tailwind utilities use these CSS variables). */
+html.light {
+  --color-ori-black: #f4f4f5;
+  --color-ori-charcoal: #e8e8ec;
+  --color-ori-section-alt: #ebe9e4;
+  --color-ori-surface: #ffffff;
+  --color-ori-border: #d4d4d8;
+  --color-ori-muted: #52525b;
+  --color-ori-foreground: #18181b;
+  --color-ori-accent: #9fcc00;
+  --color-ori-accent-dim: #7ea600;
+  --color-ori-glow: rgba(159, 204, 0, 0.14);
+}
+
+html.light .section-divider {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-ori-accent) 7%, transparent),
+    transparent 40%
+  );
+  border-bottom-color: color-mix(in srgb, var(--color-ori-border) 92%, var(--color-ori-foreground));
+}
+
+html.light .gradient-orb-accent {
+  background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(159, 204, 0, 0.12), transparent 60%);
+}
+
+html.light .funding-spectrum-range::-webkit-slider-thumb {
+  box-shadow: 0 0 0 5px rgba(159, 204, 0, 0.22), 0 3px 14px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+}
+
+html.light .funding-spectrum-range::-moz-range-thumb {
+  box-shadow: 0 0 0 5px rgba(159, 204, 0, 0.22), 0 3px 14px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+}
+
+html.light .funding-spectrum-dialog::backdrop {
+  background: rgba(24, 24, 27, 0.4);
+}
+
+.funding-spectrum-popover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+html.light .funding-spectrum-popover {
+  box-shadow: 0 12px 40px rgba(24, 24, 27, 0.1);
+}
+
+.funding-spectrum-dialog-panel {
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+html.light .funding-spectrum-dialog-panel {
+  box-shadow: 0 20px 50px rgba(24, 24, 27, 0.12);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+  html.light {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-ori-black text-ori-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ori-accent;
+  }
+  .skip-link {
+    @apply absolute left-4 top-4 -translate-y-16 rounded bg-ori-accent px-4 py-2 text-ori-black font-medium transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-ori-accent;
+  }
+}
+
+/* Readability: max content width + line height for long copy */
+.prose-copy {
+  max-width: 720px;
+  line-height: 1.75;
+}
+.prose-copy p + p {
+  margin-top: 1.25em;
+}
+.prose-copy ul, .prose-copy ol {
+  margin-top: 0.75em;
+  padding-left: 1.25em;
+}
+.prose-copy li + li {
+  margin-top: 0.35em;
+}
+
+/* Section long copy: 680–760px for readability */
+.section-prose {
+  max-width: 680px;
+  line-height: 1.75;
+}
+
+/* Section rhythm: visible separation between bands */
+.section-divider {
+  border-bottom: 1px solid var(--color-ori-border);
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--color-ori-foreground) 5%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-ori-accent) 6%, transparent) 0%,
+    transparent 38%
+  );
+}
+
+/* Card hover: subtle border + glow */
+.card-hover {
+  @apply transition-all duration-200;
+}
+.card-hover:hover {
+  border-color: rgba(201, 243, 29, 0.35);
+  box-shadow: 0 0 24px rgba(201, 243, 29, 0.06);
+}
+
+/* Button micro-interaction: hover lift + glow */
+.btn-lift:hover {
+  transform: translateY(-1px);
+}
+.btn-lift-primary:hover {
+  box-shadow: 0 4px 20px rgba(201, 243, 29, 0.2);
+}
+.btn-lift-outline:hover {
+  box-shadow: 0 0 20px rgba(201, 243, 29, 0.15);
+}
+
+/* Chips / badges */
+.chip {
+  @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+}
+.chip-accent {
+  @apply bg-ori-glow text-ori-accent border border-ori-accent/30;
+}
+.chip-muted {
+  @apply bg-ori-surface text-ori-muted border border-ori-border;
+}
+
+/* Scroll reveal (CSS-only: opacity + translate on in-view via animation) */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reveal-section {
+  animation: reveal-up 0.6s ease-out forwards;
+}
+
+/* Subtle gradient orbs with minimal motion */
+.gradient-orb {
+  background: radial-gradient(ellipse 80% 50% at 50% 50%, var(--color-ori-glow), transparent 70%);
+  animation: orb-pulse 12s ease-in-out infinite;
+}
+.gradient-orb-accent {
+  background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(201, 243, 29, 0.08), transparent 60%);
+  animation: orb-pulse 14s ease-in-out infinite 1s;
+}
+@keyframes orb-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+/* Drawer overlay + panel */
+.drawer-overlay {
+  animation: drawer-fade-in 0.2s ease-out forwards;
+}
+.drawer-panel {
+  animation: drawer-slide-in 0.25s ease-out forwards;
+}
+@keyframes drawer-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes drawer-slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* Funding gap illustration: ambient motion (disabled when user prefers reduced motion) */
+@keyframes gap-glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes gap-dotted-flow {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+.gap-dotted-flow {
+  stroke-dasharray: 8 6;
+  animation: gap-dotted-flow 6s linear infinite;
+}
+.gap-glow-pulse {
+  animation: gap-glow-pulse 3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gap-glow-pulse,
+  .gap-dotted-flow {
+    animation: none !important;
+  }
+  .readiness-progress-bar {
+    transition: none !important;
+  }
+}
+
+/* Design system utilities */
+@layer utilities {
+  .ori-container {
+    width: 100%;
+    max-width: var(--ori-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  @media (min-width: 640px) {
+    .ori-container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .ori-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  .ori-section {
+    padding-top: var(--ori-section-py);
+    padding-bottom: var(--ori-section-py);
+  }
+  @media (min-width: 768px) {
+    .ori-section {
+      padding-top: var(--ori-section-py-md);
+      padding-bottom: var(--ori-section-py-md);
+    }
+  }
+  @media (min-width: 1024px) {
+    .ori-section {
+      padding-top: var(--ori-section-py-lg);
+      padding-bottom: var(--ori-section-py-lg);
+    }
+  }
+  .ori-section-tight {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  @media (min-width: 768px) {
+    .ori-section-tight {
+      padding-top: 2.5rem;
+      padding-bottom: 2.5rem;
+    }
+  }
+  .ori-section-hero {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+  @media (min-width: 768px) {
+    .ori-section-hero {
+      padding-top: 6rem;
+      padding-bottom: 7rem;
+    }
+  }
+  .ori-readable {
+    max-width: var(--ori-readable-max);
+  }
+  .ori-h1 {
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--color-ori-foreground);
+  }
+  @media (min-width: 768px) {
+    .ori-h1 {
+      font-size: 3rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .ori-h1 {
+      font-size: 3.75rem;
+    }
+  }
+  .ori-h2 {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--color-ori-foreground);
+  }
+  @media (min-width: 768px) {
+    .ori-h2 {
+      font-size: 2.25rem;
+    }
+  }
+  .ori-lead {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--color-ori-muted);
+  }
+  @media (min-width: 768px) {
+    .ori-lead {
+      font-size: 1.25rem;
+    }
+  }
+  .ori-muted {
+    font-size: 0.875rem;
+    color: var(--color-ori-muted);
+  }
+  .ori-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+}
+
+/* Funding gap: range input — transparent track so rail shows through; accent thumb */
+.funding-spectrum-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3.25rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+@media (min-width: 768px) {
+  .funding-spectrum-range {
+    height: 3.5rem;
+  }
+}
+.funding-spectrum-range:focus {
+  outline: none;
+}
+.funding-spectrum-range:focus-visible {
+  outline: 2px solid var(--color-ori-accent);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+.funding-spectrum-range::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: transparent;
+}
+.funding-spectrum-range::-moz-range-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: transparent;
+}
+.funding-spectrum-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -8px;
+  border-radius: 9999px;
+  background: var(--color-ori-accent);
+  box-shadow: 0 0 0 5px rgba(201, 243, 29, 0.28), 0 3px 14px rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(10, 10, 11, 0.95);
+  cursor: grab;
+}
+.funding-spectrum-range:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+.funding-spectrum-range::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--color-ori-accent);
+  box-shadow: 0 0 0 5px rgba(201, 243, 29, 0.28), 0 3px 14px rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(10, 10, 11, 0.95);
+  cursor: grab;
+}
+.funding-spectrum-range:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  .funding-spectrum-range::-webkit-slider-thumb,
+  .funding-spectrum-range::-moz-range-thumb {
+    box-shadow: 0 0 0 2px rgba(201, 243, 29, 0.35), 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+}
+
+.funding-spectrum-dialog::backdrop {
+  background: rgba(10, 10, 11, 0.78);
+}
