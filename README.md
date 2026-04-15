@@ -26,7 +26,7 @@ npm install
 npm run dev
 ```
 
-**Checks:** `npm run ci` (lint + unit tests + build), then `npm run test:e2e` locally (first time: `npx playwright install chromium`). **GitHub Actions** (`.github/workflows/ci.yml`) runs the same on push/PR: lint, Vitest, production build, and Playwright smoke against `vite preview`.
+**Checks:** `npm run ci` (lint + unit tests + build), then `npm run test:e2e` locally (first time: `npx playwright install chromium`). **GitHub Actions CI** is not in the repo until the deploy token has the `workflow` scope (or you use SSH); run the same checks locally or in another CI host before merging.
 
 SEO governance is enforced in tests (`src/lib/seo/routeDescriptions.test.ts`, `src/lib/seo/routeCoverage.test.ts`, `src/lib/seo/routeTitles.test.ts`, `src/lib/seo/indexing.test.ts`, `src/lib/seo/routeGovernance.test.ts`).
 
