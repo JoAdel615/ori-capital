@@ -2,7 +2,7 @@ import { ArrowRight, CheckCircle2, CircleDot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PageSection } from "../system";
 import { MANAGEMENT_MODULES } from "../../data/pillars";
-import { CAPITAL_IMAGE_SET, HOME_DIVERSE_FOUNDERS, MANAGEMENT_IMAGE_SET } from "../../constants/siteImagery";
+import { CAPITAL_IMAGE_SET, MANAGEMENT_IMAGE_SET } from "../../constants/siteImagery";
 
 const MANAGEMENT_SECTION_IMAGES = {
   formation: CAPITAL_IMAGE_SET[0]!.src,
