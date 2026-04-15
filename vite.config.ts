@@ -50,25 +50,36 @@ function applyEnvToProcess(mode: string) {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command, isPreview }) => {
   applyEnvToProcess(mode);
+  /** Dev server only — not `vite preview` (containers / App Platform expect HTTP behind their TLS). */
+  const useDevHttps = command === "serve" && !isPreview;
+  const previewPort = Number(process.env.PORT) || 4173;
   return {
     server: {
       port: 5173,
       strictPort: true,
+      // Default Node/Vite can listen on IPv6 `localhost` only; `127.0.0.1` then fails with connection refused.
+      // `true` binds all interfaces so https://127.0.0.1:5173 and https://localhost:5173 both work.
+      host: true,
       // API writes `.data/backoffice.json`; watching it triggers a full page reload and wipes React state.
       watch: { ignored: ["**/.data/**"] },
     },
     preview: {
-      port: 4173,
+      port: previewPort,
       strictPort: true,
+      host: true,
     },
     test: {
       exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
     },
     plugins: [
-      // HTTPS locally so eCrypt Collect.js iframes / browsers (e.g. Brave) behave like production.
-      basicSsl(),
+      ...(useDevHttps
+        ? [
+            // HTTPS in local dev only; preview uses HTTP so PaaS health checks (e.g. DigitalOcean :8080) work.
+            basicSsl(),
+          ]
+        : []),
       react(),
       tailwind(),
       {

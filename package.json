@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "preview": "node scripts/kill-vite-ports.mjs && vite preview",
+    "start": "vite preview --host 0.0.0.0",
     "api": "tsx server/apiServer.ts",
     "api:cpanel": "node server/cpanel-entry.cjs",
     "deploy:cpanel": "npm run build && node scripts/deploy-cpanel.mjs",

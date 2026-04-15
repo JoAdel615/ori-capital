@@ -104,6 +104,17 @@ applyEnvToProcess(process.env.NODE_ENV === "production" ? "production" : "develo
 
 const stack = createStack();
 attachCors(stack);
+stack.use((req, res, next) => {
+  const pathOnly = (req.url || "").split("?")[0] || "";
+  if (pathOnly === "/health" && req.method === "GET") {
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    res.end("ok");
+    return;
+  }
+  next();
+});
 const pay = paymentChargeMiddleware();
 stack.use((req, res, next) => {
   void pay(req, res, next);
@@ -111,19 +122,27 @@ stack.use((req, res, next) => {
 attachBackOfficeRoutes(stack);
 attachReadinessRoutes(stack);
 
-stack.use((req, res) => {
+stack.use((_req, res) => {
   res.statusCode = 404;
   res.setHeader("Content-Type", "application/json");
   res.end(JSON.stringify({ ok: false, error: "Not found" }));
 });
 
 const port = Number(process.env.PORT) || 8787;
-http.createServer((req, res) => {
+const server = http.createServer((req, res) => {
   stack.run(req, res);
-})
-  .listen(port, () => {
-    console.log(`[ori-capital api] listening on http://127.0.0.1:${port}`);
-    console.log(
-      `[ori-capital api] set API_CORS_ORIGIN to your site origin (e.g. https://oricapitalholdings.com) for browser access`
-    );
-  });
+});
+server.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`[ori-capital api] port ${port} is already in use`);
+  } else {
+    console.error("[ori-capital api] server error:", err);
+  }
+  process.exit(1);
+});
+server.listen(port, () => {
+  console.log(`[ori-capital api] listening on http://127.0.0.1:${port}`);
+  console.log(
+    `[ori-capital api] set API_CORS_ORIGIN to your site origin (e.g. https://oricapitalholdings.com) for browser access`
+  );
+});

@@ -32,9 +32,16 @@ export function attachReadinessRoutes(middlewares: {
     }
     if (req.method !== "POST") return next();
     const chunks: Buffer[] = [];
+    req.on("error", () => {
+      if (res.headersSent) return;
+      res.setHeader("Content-Type", "application/json");
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: "Request error" }));
+    });
     req.on("data", (c: Buffer) => chunks.push(c));
     req.on("end", () => {
       try {
+        if (res.headersSent) return;
         const body = Buffer.concat(chunks).toString("utf8");
         const payload = JSON.parse(body || "{}");
         if (isReadinessScore) {
@@ -71,6 +78,7 @@ export function attachReadinessRoutes(middlewares: {
           res.end(JSON.stringify({ success: true }));
         }
       } catch (err) {
+        if (res.headersSent) return;
         res.setHeader("Content-Type", "application/json");
         res.statusCode = 500;
         res.end(JSON.stringify({ error: String(err) }));

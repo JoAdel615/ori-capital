@@ -191,11 +191,24 @@ function getBoolEnv(name: string): boolean {
   return v === "1" || v === "true" || v === "enabled" || v === "add_customer";
 }
 
+function singleHeader(value: string | string[] | undefined): string {
+  if (value === undefined) return "";
+  const first = Array.isArray(value) ? value[0] : value;
+  return typeof first === "string" ? first.trim() : "";
+}
+
 function getOrigin(req: IncomingMessage, candidate?: string): string {
   const c = (candidate || "").trim();
   if (/^https?:\/\//i.test(c)) return c;
-  const proto = req.headers["x-forwarded-proto"] || ((req.socket as { encrypted?: boolean }).encrypted ? "https" : "http");
-  const host = req.headers.host || "localhost:5173";
+  const rawProto = singleHeader(req.headers["x-forwarded-proto"]);
+  const firstProto = rawProto.split(",")[0]?.trim().toLowerCase() || "";
+  const proto =
+    firstProto === "https" || firstProto === "http"
+      ? firstProto
+      : (req.socket as { encrypted?: boolean }).encrypted
+        ? "https"
+        : "http";
+  const host = singleHeader(req.headers.host) || "localhost:5173";
   return `${proto}://${host}`;
 }
 
