@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { config } from "../config";
 
-const SITE_NAME = "Ori Capital";
+const SITE_NAME = "Ori Holdings";
 
 function setMetaName(name: string, content: string) {
   let el = document.querySelector(`meta[name="${name}"]`);
@@ -54,7 +54,7 @@ function setRobotsMeta(content: string | null) {
 
 export type DocumentHeadOptions = {
   /**
-   * Title segment before ` | Ori Capital`. Empty string or undefined = site name only.
+   * Title segment before ` | Ori Holdings`. Empty string or undefined = site name only.
    */
   titleSegment?: string;
   description: string;

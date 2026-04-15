@@ -1,9 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   ReferralHero,
   ReferralWhatWeHelp,
-  ReferralPathCards,
   ReferralHowOriSupports,
   ReferralWhyReferred,
   ReferralFinalCta,
@@ -13,15 +12,31 @@ import {
   persistReferralCode,
   trackReferralFunnelEvent,
 } from "../lib/referral/attribution";
+import { fetchReferralPartnerByCode } from "../lib/referral/lookupPartner";
 
 export function ReferralPage() {
   const [searchParams] = useSearchParams();
   const refFromUrl = useMemo(() => normalizeReferralCode(searchParams.get("ref")), [searchParams]);
+  const [partnerDisplayName, setPartnerDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!refFromUrl) return;
     persistReferralCode(refFromUrl);
     trackReferralFunnelEvent({ referralCode: refFromUrl, event: "landing" });
+  }, [refFromUrl]);
+
+  useEffect(() => {
+    if (!refFromUrl) {
+      setPartnerDisplayName(null);
+      return;
+    }
+    let cancelled = false;
+    void fetchReferralPartnerByCode(refFromUrl).then((p) => {
+      if (!cancelled) setPartnerDisplayName(p?.displayName ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [refFromUrl]);
 
   const handleCta = (cta: string) => {
@@ -34,9 +49,8 @@ export function ReferralPage() {
     <div className="referral-landing">
       <ReferralHero refCode={refFromUrl} onCtaClick={handleCta} />
       <ReferralWhatWeHelp />
-      <ReferralPathCards refCode={refFromUrl} onCardNavigate={handleCta} />
       <ReferralHowOriSupports />
-      <ReferralWhyReferred />
+      <ReferralWhyReferred partnerDisplayName={partnerDisplayName} />
       <ReferralFinalCta refCode={refFromUrl} onCtaClick={handleCta} />
     </div>
   );

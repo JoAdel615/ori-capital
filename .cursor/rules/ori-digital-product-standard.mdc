@@ -1,0 +1,35 @@
+---
+description: Ori Capital Holdings — pillars, design system, layout, content & analytics guardrails
+globs:
+  - "**/*.{tsx,ts,css}"
+alwaysApply: true
+---
+
+# Ori Capital — Digital product guardrails
+
+Read **`docs/ORI_DIGITAL_PRODUCT_STANDARD.md`** for full context. When editing this codebase:
+
+## Brand & IA
+- **Ori Capital Holdings LLC** serves entrepreneurs and SMBs through three pillars, listed **Consulting → Management → Capital** wherever all three appear (nav, footers, hero copy).
+- **Management** remains the **operational spine** in product reality (systems/compliance/infrastructure); do not contradict that in readiness/capital flows.
+- Prefer **`ROUTES`** from `src/utils/navigation.ts` for links.
+
+## Design system
+- Use **`src/design/FOUNDATIONS.md`** and semantic classes (`ori-type-*`, surface tokens, `ori-pillar-band-*`). Avoid raw one-off colors that bypass tokens.
+- New UI should fit **Atomic Design**: primitives → `components/system` → `components/compositions` → pages.
+- Respect **focus**, **landmarks**, **heading order**, and **`prefers-reduced-motion`**.
+
+## Layout (avoid repetitive “blocks”)
+- Do not stack the **same composition pattern** repeatedly on a single page without varying band, imagery, or column layout.
+- Pillar hubs and product pages should use **distinct hero/section archetypes** where possible (`layoutVariant`, split vs full-bleed image, etc.).
+- **`PillarModulePage`:** set **`pillar`** (`consulting` | `management` | `capital`) for the process-band tint; vary **`heroLayout`** (`overlay` | `split`), **`galleryLayout`** (`bento` | `equal`), **`layoutVariant`**, and **`faqSurface`** across SKUs so module routes are not visually identical.
+- **Product/service pages** need recognizable **identity** (dedicated eyebrow, proof, CTA)—not only generic module grids.
+
+## Content
+- Each important page: **what / for whom / why / next step** (JTBD + guide framing). StoryBrand-style: user is hero, Ori is guide.
+
+## Analytics
+- Significant CTAs and funnel steps should use existing **`ORI_EVENTS`** / `trackOriEvent` patterns; new flows should plan measurable events.
+
+## Placeholders
+- Placeholder product pages are OK: must state scope honestly and use a **distinct** layout variant so they are not clones of neighboring routes.

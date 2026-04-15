@@ -27,6 +27,20 @@
   --ori-radius-card-lg: 1rem;
   --ori-border: var(--color-ori-border);
   --ori-surface: var(--color-ori-surface);
+
+  /*
+   * Phase 1 — semantic aliases (PLATFORM_LIFECYCLE_SPEC §7).
+   * Reference primitives so html.light overrides cascade.
+   */
+  --color-ori-surface-base: var(--color-ori-black);
+  --color-ori-surface-raised: var(--color-ori-charcoal);
+  --color-ori-surface-panel: var(--color-ori-surface);
+  --color-ori-surface-muted: var(--color-ori-section-alt);
+  --color-ori-text-primary: var(--color-ori-foreground);
+  --color-ori-text-secondary: var(--color-ori-muted);
+  /* Pillar section-band tint anchors (mixed in utilities; not for text/buttons) */
+  --color-ori-pillar-consulting-hint: #6d5fdc;
+  --color-ori-pillar-capital-hint: #e0942d;
 }
 
 /* Light theme: override Ori tokens (Tailwind utilities use these CSS variables). */
@@ -41,6 +55,8 @@ html.light {
   --color-ori-accent: #9fcc00;
   --color-ori-accent-dim: #7ea600;
   --color-ori-glow: rgba(159, 204, 0, 0.14);
+  --color-ori-pillar-consulting-hint: #5b4ddb;
+  --color-ori-pillar-capital-hint: #b8731a;
 }
 
 html.light .section-divider {
@@ -68,6 +84,25 @@ html.light .funding-spectrum-range::-moz-range-thumb {
 
 html.light .funding-spectrum-dialog::backdrop {
   background: rgba(24, 24, 27, 0.4);
+}
+
+/* Pillar bands: slightly stronger tint on light page bg for visibility */
+html.light .ori-pillar-band-management {
+  background-color: color-mix(in srgb, var(--color-ori-accent) 12%, var(--color-ori-surface-base));
+}
+html.light .ori-pillar-band-consulting {
+  background-color: color-mix(
+    in srgb,
+    var(--color-ori-pillar-consulting-hint) 9%,
+    var(--color-ori-surface-base)
+  );
+}
+html.light .ori-pillar-band-capital {
+  background-color: color-mix(
+    in srgb,
+    var(--color-ori-pillar-capital-hint) 10%,
+    var(--color-ori-surface-base)
+  );
 }
 
 .funding-spectrum-popover {
@@ -137,13 +172,13 @@ html.light .funding-spectrum-dialog-panel {
   );
 }
 
-/* Card hover: subtle border + glow */
+/* Card hover: subtle border + glow (accent-aware for dark/light) */
 .card-hover {
   @apply transition-all duration-200;
 }
 .card-hover:hover {
-  border-color: rgba(201, 243, 29, 0.35);
-  box-shadow: 0 0 24px rgba(201, 243, 29, 0.06);
+  border-color: color-mix(in srgb, var(--color-ori-accent) 35%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--color-ori-accent) 8%, transparent);
 }
 
 /* Button micro-interaction: hover lift + glow */
@@ -151,10 +186,10 @@ html.light .funding-spectrum-dialog-panel {
   transform: translateY(-1px);
 }
 .btn-lift-primary:hover {
-  box-shadow: 0 4px 20px rgba(201, 243, 29, 0.2);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-ori-accent) 22%, transparent);
 }
 .btn-lift-outline:hover {
-  box-shadow: 0 0 20px rgba(201, 243, 29, 0.15);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-ori-accent) 15%, transparent);
 }
 
 /* Chips / badges */
@@ -229,13 +264,61 @@ html.light .funding-spectrum-dialog-panel {
 .gap-glow-pulse {
   animation: gap-glow-pulse 3s ease-in-out infinite;
 }
+
+/* Home landing — coordinated progress illustration (flowing process lines) */
+@keyframes ori-home-coord-flow {
+  to {
+    stroke-dashoffset: -72;
+  }
+}
+.ori-home-coord-flow {
+  stroke-dasharray: 12 16;
+  animation: ori-home-coord-flow 9s linear infinite;
+}
+
+@keyframes ori-home-spotlight-img {
+  from {
+    opacity: 0.4;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.ori-home-spotlight-img {
+  animation: ori-home-spotlight-img 0.45s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .ori-home-coord-flow {
+    animation: none !important;
+  }
+  .ori-home-spotlight-img {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
   .gap-glow-pulse,
   .gap-dotted-flow {
     animation: none !important;
   }
   .readiness-progress-bar {
     transition: none !important;
+  }
+  .reveal-section {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .gradient-orb,
+  .gradient-orb-accent {
+    animation: none !important;
+  }
+  .card-hover,
+  .btn-lift:hover {
+    transition: none !important;
+    transform: none !important;
   }
 }
 
@@ -349,6 +432,85 @@ html.light .funding-spectrum-dialog-panel {
     align-items: center;
     justify-content: center;
     gap: 1rem;
+  }
+
+  /* Phase 1 — typography roles (PLATFORM_LIFECYCLE_SPEC §7.3) */
+  .ori-type-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-ori-accent);
+  }
+  .ori-type-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ori-text-secondary);
+  }
+  .ori-type-title {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    color: var(--color-ori-text-primary);
+  }
+  @media (min-width: 768px) {
+    .ori-type-title {
+      font-size: 2.25rem;
+    }
+  }
+  .ori-type-subtitle {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+    color: var(--color-ori-text-primary);
+  }
+  @media (min-width: 768px) {
+    .ori-type-subtitle {
+      font-size: 1.375rem;
+    }
+  }
+  .ori-type-body {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--color-ori-text-primary);
+  }
+  .ori-type-body-muted {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--color-ori-text-secondary);
+  }
+  .ori-type-caption {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--color-ori-text-secondary);
+  }
+
+  /*
+   * Pillar section bands — full-width sections only; subtle brand differentiation.
+   * See src/design/FOUNDATIONS.md
+   */
+  .ori-pillar-band-management {
+    background-color: color-mix(in srgb, var(--color-ori-accent) 9%, var(--color-ori-surface-base));
+  }
+  .ori-pillar-band-consulting {
+    background-color: color-mix(
+      in srgb,
+      var(--color-ori-pillar-consulting-hint) 12%,
+      var(--color-ori-surface-base)
+    );
+  }
+  .ori-pillar-band-capital {
+    background-color: color-mix(
+      in srgb,
+      var(--color-ori-pillar-capital-hint) 11%,
+      var(--color-ori-surface-base)
+    );
   }
 }
 

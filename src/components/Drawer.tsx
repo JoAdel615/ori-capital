@@ -45,7 +45,8 @@ export function Drawer({
 
   useEffect(() => {
     if (!open || !ref.current) return;
-    const focusables = ref.current.querySelectorAll<HTMLElement>(
+    const panelEl = ref.current;
+    const focusables = panelEl.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     const first = focusables[0];
@@ -65,8 +66,8 @@ export function Drawer({
         }
       }
     };
-    ref.current.addEventListener("keydown", handleKeyDown);
-    return () => ref.current?.removeEventListener("keydown", handleKeyDown);
+    panelEl.addEventListener("keydown", handleKeyDown);
+    return () => panelEl.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
   if (!open || typeof document === "undefined") return null;

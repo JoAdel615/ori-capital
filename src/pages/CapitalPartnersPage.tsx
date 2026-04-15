@@ -1,10 +1,11 @@
 import {
   PartnerAudienceSection,
-  PartnerBenefitsSection,
-  PartnerClientValueSection,
-  PartnerFinalCtaSection,
+  PartnerBestFitSection,
   PartnerHeroSection,
-  PartnerHowItWorksSection,
+  PartnerHowPartnershipWorksSection,
+  PartnerModelsSection,
+  PartnerOfferThroughOriSection,
+  PartnerUnlockSection,
 } from "../components/partner/PartnerSections";
 
 export function CapitalPartnersPage() {
@@ -12,10 +13,11 @@ export function CapitalPartnersPage() {
     <>
       <PartnerHeroSection />
       <PartnerAudienceSection />
-      <PartnerBenefitsSection />
-      <PartnerHowItWorksSection />
-      <PartnerClientValueSection />
-      <PartnerFinalCtaSection />
+      <PartnerUnlockSection />
+      <PartnerOfferThroughOriSection />
+      <PartnerHowPartnershipWorksSection />
+      <PartnerModelsSection />
+      <PartnerBestFitSection />
     </>
   );
 }

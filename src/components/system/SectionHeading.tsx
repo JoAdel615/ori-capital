@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 
 interface SectionHeadingProps {
+  /** For `aria-labelledby` on the parent section */
+  id?: string;
   eyebrow?: string;
   title: ReactNode;
   subtitle?: ReactNode;
+  /** Merged into the subtitle wrapper (e.g. `max-w-3xl text-pretty`). */
+  subtitleClassName?: string;
   align?: "center" | "left";
   className?: string;
 }
@@ -13,9 +17,11 @@ interface SectionHeadingProps {
  * Consistent spacing: mb-10 md:mb-12.
  */
 export function SectionHeading({
+  id,
   eyebrow,
   title,
   subtitle,
+  subtitleClassName = "",
   align = "center",
   className = "",
 }: SectionHeadingProps) {
@@ -31,14 +37,17 @@ export function SectionHeading({
         </p>
       )}
       <h2
+        id={id}
         className={`font-display text-2xl font-bold tracking-tight text-ori-foreground md:text-3xl ${eyebrow ? "mt-2" : ""}`.trim()}
       >
         {title}
       </h2>
       {subtitle && (
-        <p className={`mt-4 text-ori-muted leading-relaxed ${subtitleClass}`}>
+        <div
+          className={`mt-4 text-ori-muted leading-relaxed ${subtitleClass} ${subtitleClassName}`.trim()}
+        >
           {subtitle}
-        </p>
+        </div>
       )}
     </header>
   );

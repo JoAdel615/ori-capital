@@ -263,6 +263,7 @@ function maskEmail(email: string): string {
 }
 
 const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+const CLAIM_LINK_TTL_MS = 24 * 60 * 60 * 1000;
 
 function getPublicOrigin(): string {
   return (
@@ -278,6 +279,10 @@ function referralLinkForCode(code: string): string {
 
 function partnerPortalRefLink(code: string): string {
   return `${getPublicOrigin()}/partner?ref=${encodeURIComponent(code)}`;
+}
+
+function partnerClaimLink(token: string): string {
+  return `${getPublicOrigin()}/partner?claim=${encodeURIComponent(token)}`;
 }
 
 function generateReferralCode(state: BackOfficeState): string {
@@ -305,9 +310,26 @@ function assignPortalKeyToPartner(state: BackOfficeState, partner: PartnerRecord
   partner.portalKeySalt = salt;
   partner.portalKeyHash = hashPortalKey(accessKey, salt);
   partner.portalKeyCreatedAt = nowIso();
+  // Access-key onboarding should always require partner-chosen password on next sign-in.
+  delete partner.passwordHash;
+  delete partner.passwordSalt;
+  delete partner.passwordSetAt;
   partner.updatedAt = nowIso();
   state.partnerSessions = (state.partnerSessions || []).filter((s) => s.partnerId !== partner.id);
   return accessKey;
+}
+
+function assignClaimTokenToPartner(state: BackOfficeState, partner: PartnerRecord): string {
+  const token = randomHex(24);
+  const salt = randomHex(16);
+  partner.claimTokenSalt = salt;
+  partner.claimTokenHash = hashPortalKey(token, salt);
+  partner.claimTokenIssuedAt = nowIso();
+  partner.claimTokenExpiresAt = new Date(Date.now() + CLAIM_LINK_TTL_MS).toISOString();
+  partner.claimClaimedAt = undefined;
+  partner.updatedAt = nowIso();
+  state.partnerSessions = (state.partnerSessions || []).filter((s) => s.partnerId !== partner.id);
+  return token;
 }
 
 function sanitizePartnerAdmin(p: PartnerRecord): PartnerRecord & {
@@ -315,8 +337,16 @@ function sanitizePartnerAdmin(p: PartnerRecord): PartnerRecord & {
   invitePending: boolean;
 } {
   // Destructure to omit sensitive fields from the spread sent to the admin UI.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- portalKeySalt, passwordHash, passwordSalt stripped intentionally
-  const { portalKeyHash, portalKeySalt, inviteToken, passwordHash, passwordSalt, ...rest } = p;
+  const {
+    portalKeyHash,
+    portalKeySalt: _portalKeySalt,
+    inviteToken,
+    passwordHash: _passwordHash,
+    passwordSalt: _passwordSalt,
+    claimTokenHash: _claimTokenHash,
+    claimTokenSalt: _claimTokenSalt,
+    ...rest
+  } = p;
   return {
     ...rest,
     portalEnabled: Boolean(portalKeyHash),
@@ -333,10 +363,161 @@ function partnerIdFromSession(req: IncomingMessage): string | null {
   return row ? row.partnerId : null;
 }
 
+function workshopStatusFromConsultation(c: BackOfficeState["consultations"][number]): "Not started" | "Scheduled" | "Completed" {
+  if (c.completedAt || String(c.attendanceStatus || "").toLowerCase() === "completed") return "Completed";
+  if (c.scheduledAt) return "Scheduled";
+  return "Not started";
+}
+
+type PartnerServiceCode =
+  | "FORMATION"
+  | "VAULT"
+  | "BUILDER"
+  | "HOSTING"
+  | "GROWTH"
+  | "FUNDING_READINESS"
+  | "CAPITAL";
+type CollaborationServiceType = "STARTUP_COACHING" | "PRODUCT_DEVELOPMENT" | "MANAGEMENT_ADVISORY";
+type FundingReadinessEnrollmentType = "INDIVIDUAL" | "BUSINESS" | "BOTH" | "NOT_ENROLLED";
+
+const SERVICE_LABELS: Record<PartnerServiceCode, string> = {
+  FORMATION: "Formation",
+  VAULT: "Vault",
+  BUILDER: "Builder",
+  HOSTING: "Hosting",
+  GROWTH: "Growth",
+  FUNDING_READINESS: "Funding Readiness",
+  CAPITAL: "Capital",
+};
+
+function serviceCodeFromPlanName(name: string): PartnerServiceCode | null {
+  const n = String(name || "").toLowerCase();
+  if (n.includes("formation")) return "FORMATION";
+  if (n.includes("vault")) return "VAULT";
+  if (n.includes("builder")) return "BUILDER";
+  if (n.includes("hosting")) return "HOSTING";
+  if (n.includes("growth")) return "GROWTH";
+  if (n.includes("capital")) return "CAPITAL";
+  if (n.includes("funding readiness") || n.includes("pre-qual")) return "FUNDING_READINESS";
+  return null;
+}
+
+function serviceCodeFromRequested(raw: string): PartnerServiceCode | null {
+  const v = String(raw || "").trim().toUpperCase();
+  if (
+    v === "FORMATION" ||
+    v === "VAULT" ||
+    v === "BUILDER" ||
+    v === "HOSTING" ||
+    v === "GROWTH" ||
+    v === "FUNDING_READINESS" ||
+    v === "CAPITAL"
+  ) {
+    return v as PartnerServiceCode;
+  }
+  return null;
+}
+
+function deriveCohortName(lead: LeadRecord): string {
+  const payload = lead.intakePayload as Record<string, unknown>;
+  const options = [
+    payload.cohortName,
+    payload.cohort,
+    payload.programName,
+    payload.acceleratorProgram,
+    payload.source_page,
+  ];
+  for (const candidate of options) {
+    const v = String(candidate || "").trim();
+    if (v) return v;
+  }
+  return "General";
+}
+
+function mapFundingStatus(opportunity?: OpportunityRecord, funding?: FundingRecord): string {
+  if (funding && Number(funding.fundedAmount || 0) > 0) return "Funded";
+  if (funding && Number(funding.approvedAmount || 0) > 0) return "Approved";
+  const stage = String(opportunity?.stage || "").toLowerCase();
+  if (stage.includes("approved")) return "Approved";
+  if (stage.includes("submitted")) return "Submitted";
+  if (stage.includes("review")) return "In review";
+  if (stage.includes("ready")) return "Ready";
+  if (opportunity) return "In review";
+  return "Not started";
+}
+
+function mapCurrentStage(opts: { services: Array<{ code: PartnerServiceCode; status: string }>; fundingStatus: string }): "Collaboration" | "Management" | "Funding" {
+  if (opts.fundingStatus !== "Not started") return "Funding";
+  if (opts.services.length > 0) return "Management";
+  return "Collaboration";
+}
+
+function nextActionForClient(opts: {
+  workshopStatus: "Not started" | "Scheduled" | "Completed";
+  services: Array<{ code: PartnerServiceCode; status: string }>;
+  fundingStatus: string;
+}): string {
+  if (opts.workshopStatus === "Not started") return "Schedule workshop";
+  if (opts.services.length === 0) return "Assign management tool";
+  if (opts.fundingStatus === "Not started" || opts.fundingStatus === "In review") return "Assign funding readiness";
+  if (opts.fundingStatus === "Ready") return "Submit funding profile";
+  if (opts.fundingStatus === "Submitted") return "Review funding profile";
+  return "Awaiting client docs";
+}
+
+function partnerActivityLabel(action: string, metadata?: Record<string, unknown>): string {
+  if (action === "PARTNER_CLIENT_ADDED") return "Client added to your workspace";
+  if (action === "PARTNER_SERVICE_ASSIGNED") return `Management tool assigned: ${String(metadata?.serviceName || "Tool")}`;
+  if (action === "PARTNER_COLLABORATION_SERVICE_ASSIGNED") return `Collaboration service assigned: ${String(metadata?.serviceType || "Service")}`;
+  if (action === "PARTNER_FUNDING_READINESS_ASSIGNED") return `Funding readiness enrolled (${String(metadata?.enrollmentType || "program")})`;
+  if (action === "PARTNER_WORKSHOP_SCHEDULED")
+    return `Playbook scheduled: ${String(metadata?.workshopType || "Workshop")} · ${String(metadata?.deliveryMode || "1:1")}`;
+  if (action === "PARTNER_WORKSHOP_STATUS_UPDATED") return `Workshop status updated: ${String(metadata?.status || "")}`;
+  if (action === "COMMISSION_UPDATED") return "Commission status updated";
+  if (action === "REFERRAL_FUNNEL_EVENT") return "Referral activity captured";
+  if (action === "PARTNER_PROFILE_UPDATED") return "Partner profile updated";
+  if (action === "LEAD_UPDATED") return "Client profile updated";
+  return action
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/^\w/, (m) => m.toUpperCase());
+}
+
+function normalizeEnrollmentType(raw: unknown): FundingReadinessEnrollmentType {
+  const value = String(raw || "").trim().toUpperCase();
+  if (value === "INDIVIDUAL" || value === "BUSINESS" || value === "BOTH") return value as FundingReadinessEnrollmentType;
+  return "NOT_ENROLLED";
+}
+
 function computePartnerBootstrap(state: BackOfficeState, partnerId: string) {
   const partner = state.partners.find((p) => p.id === partnerId);
   if (!partner) return null;
   const contactsById = new Map(state.contacts.map((c) => [c.id, c]));
+  const businessesById = new Map(state.businesses.map((b) => [b.id, b]));
+  const opportunitiesByLead = new Map<string, OpportunityRecord[]>();
+  for (const opp of state.opportunities) {
+    const list = opportunitiesByLead.get(opp.leadId) || [];
+    list.push(opp);
+    opportunitiesByLead.set(opp.leadId, list);
+  }
+  const fundingByOpportunity = new Map<string, FundingRecord[]>();
+  for (const fr of state.fundingRecords) {
+    const list = fundingByOpportunity.get(fr.opportunityId) || [];
+    list.push(fr);
+    fundingByOpportunity.set(fr.opportunityId, list);
+  }
+  const subscriptionsByLead = new Map<string, SubscriptionEnrollmentRecord[]>();
+  for (const sub of state.subscriptions) {
+    const list = subscriptionsByLead.get(sub.leadId) || [];
+    list.push(sub);
+    subscriptionsByLead.set(sub.leadId, list);
+  }
+  const consultationsByLead = new Map<string, BackOfficeState["consultations"]>();
+  for (const consultation of state.consultations) {
+    const list = consultationsByLead.get(consultation.leadId) || [];
+    list.push(consultation);
+    consultationsByLead.set(consultation.leadId, list);
+  }
   const leads = state.leads.filter((l) => l.partnerId === partnerId);
   const leadsOut = leads.map((lead) => {
     const c = contactsById.get(lead.contactId);
@@ -370,11 +551,173 @@ function computePartnerBootstrap(state: BackOfficeState, partnerId: string) {
   const pending = commissions.filter((c) => c.status === "PENDING").reduce((s, c) => s + c.amount, 0);
   const received = commissions.filter((c) => c.status === "RECEIVED").reduce((s, c) => s + c.amount, 0);
   const paid = commissions.filter((c) => c.status === "PAID").reduce((s, c) => s + c.amount, 0);
+  const managementToolsByLead = new Map<string, Array<{ code: PartnerServiceCode; status: "ACTIVE" | "PENDING" | "NOT_ACTIVE" }>>();
+  for (const lead of leads) {
+    const tools: Array<{ code: PartnerServiceCode; status: "ACTIVE" | "PENDING" | "NOT_ACTIVE" }> = [];
+    for (const sub of subscriptionsByLead.get(lead.id) || []) {
+      const code = serviceCodeFromPlanName(sub.planName);
+      if (!code || code === "FUNDING_READINESS" || code === "CAPITAL") continue;
+      const status = String(sub.subscriptionStatus || "").toLowerCase().includes("active") ? "ACTIVE" : "PENDING";
+      if (!tools.some((s) => s.code === code)) tools.push({ code, status: status as "ACTIVE" | "PENDING" });
+    }
+    managementToolsByLead.set(lead.id, tools);
+  }
+
+  const clients = leads.map((lead) => {
+    const contact = contactsById.get(lead.contactId);
+    const business = lead.businessId ? businessesById.get(lead.businessId) : undefined;
+    const opps = opportunitiesByLead.get(lead.id) || [];
+    const primaryOpp = opps[0];
+    const funding = primaryOpp ? (fundingByOpportunity.get(primaryOpp.id) || [])[0] : undefined;
+    const consultations = consultationsByLead.get(lead.id) || [];
+    const workshop = consultations[0];
+    const workshopStatus = workshop ? workshopStatusFromConsultation(workshop) : "Not started";
+    const payload = lead.intakePayload as Record<string, unknown>;
+    const collaborationServices = (payload.collaborationServices as Array<Record<string, unknown>> | undefined) || [];
+    const normalizedCollaborationServices = collaborationServices
+      .map((entry) => {
+        const type = String(entry.type || "").trim().toUpperCase();
+        if (type !== "STARTUP_COACHING" && type !== "PRODUCT_DEVELOPMENT" && type !== "MANAGEMENT_ADVISORY") return null;
+        return {
+          type: type as CollaborationServiceType,
+          status: String(entry.status || "ACTIVE").trim().toUpperCase() === "PENDING" ? "PENDING" : "ACTIVE",
+          playbookName: typeof entry.playbookName === "string" ? entry.playbookName : undefined,
+          deliveryMode: entry.deliveryMode === "Cohort" ? "Cohort" : entry.deliveryMode === "1:1" ? "1:1" : undefined,
+          sessionStatus:
+            entry.sessionStatus === "Scheduled" || entry.sessionStatus === "Completed" || entry.sessionStatus === "Not started"
+              ? (entry.sessionStatus as "Scheduled" | "Completed" | "Not started")
+              : undefined,
+          engagementType: entry.engagementType === "One-off" || entry.engagementType === "Ongoing" ? (entry.engagementType as "One-off" | "Ongoing") : undefined,
+          projectStatus:
+            entry.projectStatus === "Scoped" ||
+            entry.projectStatus === "In build" ||
+            entry.projectStatus === "In revision" ||
+            entry.projectStatus === "Complete"
+              ? (entry.projectStatus as "Scoped" | "In build" | "In revision" | "Complete")
+              : undefined,
+        };
+      })
+      .filter(Boolean) as Array<{
+      type: CollaborationServiceType;
+      status: "ACTIVE" | "PENDING";
+      playbookName?: string;
+      deliveryMode?: "1:1" | "Cohort";
+      sessionStatus?: "Not started" | "Scheduled" | "Completed";
+      engagementType?: "One-off" | "Ongoing";
+      projectStatus?: "Scoped" | "In build" | "In revision" | "Complete";
+    }>;
+    const managementTools = managementToolsByLead.get(lead.id) || [];
+    const readinessEnrollmentType = normalizeEnrollmentType(payload.fundingReadinessEnrollmentType);
+    const readinessStatus = String(payload.fundingReadinessStatus || "").trim() || (readinessEnrollmentType === "NOT_ENROLLED" ? "Not enrolled" : "Enrolled");
+    const fundingReadiness = {
+      enrollmentType: readinessEnrollmentType,
+      programStatus: readinessStatus,
+      readinessStage: readinessStatus,
+      readyForFundingReview: readinessStatus.toLowerCase() === "ready",
+    };
+    const fundingStatus = mapFundingStatus(primaryOpp, funding);
+    const stageServices: Array<{ code: PartnerServiceCode; status: "ACTIVE" | "PENDING" | "NOT_ACTIVE" }> = [
+      ...managementTools,
+      ...(fundingReadiness.enrollmentType === "NOT_ENROLLED"
+        ? []
+        : [{ code: "FUNDING_READINESS" as PartnerServiceCode, status: "ACTIVE" as const }]),
+    ];
+    const stage = mapCurrentStage({
+      services: stageServices,
+      fundingStatus,
+    });
+    const fundedAmount = Number(funding?.fundedAmount || 0);
+    const approvedAmount = Number(funding?.approvedAmount || 0);
+    const capitalAmount = fundedAmount > 0 ? fundedAmount : approvedAmount;
+
+    return {
+      id: lead.id,
+      leadId: lead.id,
+      contactName: contact ? `${contact.firstName} ${contact.lastName}`.trim() : "Client",
+      contactEmailMasked: contact ? maskEmail(contact.email) : "",
+      companyName: business?.name || business?.legalName || "—",
+      cohortName: deriveCohortName(lead),
+      currentStage: stage,
+      collaborationServices: normalizedCollaborationServices,
+      managementTools,
+      fundingReadiness,
+      funding: { status: fundingStatus, amount: capitalAmount },
+      services: stageServices,
+      workshopStatus,
+      fundingStatus,
+      fundingAmount: capitalAmount,
+      nextAction: nextActionForClient({
+        workshopStatus,
+        services: stageServices,
+        fundingStatus,
+      }),
+    };
+  });
+
+  const activeClients = leads.filter((lead) => {
+    const status = String(lead.status || "").toLowerCase();
+    return !status.includes("archive") && !status.includes("complete");
+  }).length;
+  const inProgress = clients.filter((c) => c.fundingStatus !== "Funded").length;
+  const fundingReady = clients.filter((c) => c.fundingStatus === "Ready" || c.fundingStatus === "Submitted" || c.fundingStatus === "Approved" || c.fundingStatus === "Funded").length;
+  const capitalDeployed = clients.reduce((sum, c) => sum + (c.fundingStatus === "Funded" || c.fundingStatus === "Approved" ? c.fundingAmount : 0), 0);
+  const consultedClients = clients.filter((c) => c.currentStage === "Collaboration").length;
+  const fundedClients = clients.filter((c) => c.fundingStatus === "Funded").length;
+
+  const workshops = leads.flatMap((lead) => {
+    const leadContact = contactsById.get(lead.contactId);
+    const leadName = leadContact ? `${leadContact.firstName} ${leadContact.lastName}`.trim() : "Client";
+    return (consultationsByLead.get(lead.id) || []).map((c) => ({
+      id: c.id,
+      leadId: lead.id,
+      clientName: leadName,
+      name: c.workshopType || c.recommendationType || "Model & Offer",
+      deliveryMode: c.deliveryMode || "1:1",
+      scheduledAt: c.scheduledAt || "",
+      status:
+        c.completedAt || String(c.attendanceStatus || "").toLowerCase() === "completed"
+          ? "Completed"
+          : String(c.attendanceStatus || "").toLowerCase().includes("no")
+            ? "No-show"
+            : "Scheduled",
+    }));
+  });
+
+  const partnerLeadIds = new Set(leads.map((l) => l.id));
+  const partnerOppIds = new Set(state.opportunities.filter((o) => partnerLeadIds.has(o.leadId)).map((o) => o.id));
+  const partnerSubIds = new Set(state.subscriptions.filter((s) => partnerLeadIds.has(s.leadId)).map((s) => s.id));
+  const partnerFundingIds = new Set(state.fundingRecords.filter((f) => partnerOppIds.has(f.opportunityId)).map((f) => f.id));
+  const partnerWorkshopIds = new Set(state.consultations.filter((c) => partnerLeadIds.has(c.leadId)).map((c) => c.id));
+  const partnerCommissionIds = new Set(state.commissions.filter((c) => c.partnerId === partnerId).map((c) => c.id));
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const activityTimeline = state.activities
+    .filter((a) => {
+      if (new Date(a.createdAt).getTime() < weekAgo) return false;
+      if (a.entityType === "PARTNER" && a.entityId === partnerId) return true;
+      if (a.entityType === "LEAD" && partnerLeadIds.has(a.entityId)) return true;
+      if (a.entityType === "OPPORTUNITY" && partnerOppIds.has(a.entityId)) return true;
+      if (a.entityType === "SUBSCRIPTION" && partnerSubIds.has(a.entityId)) return true;
+      if (a.entityType === "FUNDING" && partnerFundingIds.has(a.entityId)) return true;
+      if (a.entityType === "COMMISSION" && partnerCommissionIds.has(a.entityId)) return true;
+      if (a.entityType === "CONSULTATION" && partnerWorkshopIds.has(a.entityId)) return true;
+      return false;
+    })
+    .slice(0, 20)
+    .map((a) => ({
+      id: a.id,
+      createdAt: a.createdAt,
+      label: partnerActivityLabel(a.action, a.metadata),
+    }));
+
   return {
     partner: {
       id: partner.id,
       organizationName: partner.organizationName,
       contactName: partner.contactName,
+      email: partner.email,
+      phone: partner.phone,
+      city: partner.city,
+      state: partner.state,
       referralCode: partner.referralCode,
       defaultCommissionRate: partner.defaultCommissionRate,
       payoutTerms: partner.payoutTerms,
@@ -389,8 +732,21 @@ function computePartnerBootstrap(state: BackOfficeState, partnerId: string) {
       commissionPaid: paid,
       activePromoCodes: promoCodes.filter((p) => p.active).length,
     },
+    kpis: {
+      activeClients,
+      inProgress,
+      fundingReady,
+      capitalDeployed,
+      consultedClients,
+      fundedClients,
+      commissionPending: pending,
+      commissionPaid: paid,
+    },
     needsPasswordSetup: !partner.passwordHash,
     leads: leadsOut,
+    clients,
+    workshops,
+    activityTimeline,
     commissions,
     promoCodes,
   };
@@ -870,6 +1226,102 @@ export function attachBackOfficeRoutes(middlewares: {
       return;
     }
 
+    if (pathname === "/api/public/partner-claim" && req.method === "GET") {
+      const u = new URL(req.url || "/", "http://localhost");
+      const token = String(u.searchParams.get("token") || "").trim();
+      const state = readState();
+      const partner = state.partners.find((p) => {
+        if (!p.claimTokenHash || !p.claimTokenSalt) return false;
+        return verifyPortalKey(p.claimTokenHash, p.claimTokenSalt, token);
+      });
+      if (!partner || !token) {
+        sendJson(res, 200, { ok: false, valid: false });
+        return;
+      }
+      if (partner.claimTokenExpiresAt && new Date(partner.claimTokenExpiresAt) < new Date()) {
+        sendJson(res, 200, { ok: false, valid: false, error: "expired" });
+        return;
+      }
+      if (partner.claimClaimedAt) {
+        sendJson(res, 200, { ok: false, valid: false, error: "claimed" });
+        return;
+      }
+      sendJson(res, 200, {
+        ok: true,
+        valid: true,
+        organizationName: partner.organizationName,
+        emailMasked: partner.email ? maskEmail(partner.email) : undefined,
+      });
+      return;
+    }
+
+    if (pathname === "/api/public/partner-claim/complete" && req.method === "POST") {
+      void (async () => {
+        try {
+          const ip = getClientIp(req);
+          if (!partnerLoginFailLimiter.isAllowed(ip)) {
+            sendJson(res, 429, { ok: false, error: "Too many attempts. Try again later." });
+            return;
+          }
+          const body = await parseBody(req);
+          const token = String(body.token || "").trim();
+          const password = String(body.password || "");
+          if (!token) {
+            sendJson(res, 400, { ok: false, error: "Missing claim token." });
+            return;
+          }
+          if (password.length < 8) {
+            sendJson(res, 400, { ok: false, error: "Password must be at least 8 characters." });
+            return;
+          }
+          const state = readState();
+          const partner = state.partners.find((p) => {
+            if (!p.claimTokenHash || !p.claimTokenSalt) return false;
+            return verifyPortalKey(p.claimTokenHash, p.claimTokenSalt, token);
+          });
+          if (!partner) {
+            partnerLoginFailLimiter.recordFailure(ip);
+            sendJson(res, 400, { ok: false, error: "Invalid or expired claim link." });
+            return;
+          }
+          if (partner.claimTokenExpiresAt && new Date(partner.claimTokenExpiresAt) < new Date()) {
+            partnerLoginFailLimiter.recordFailure(ip);
+            sendJson(res, 400, { ok: false, error: "Claim link has expired." });
+            return;
+          }
+          if (partner.claimClaimedAt) {
+            sendJson(res, 400, { ok: false, error: "Claim link already used." });
+            return;
+          }
+          if (partner.status === "SUSPENDED") {
+            sendJson(res, 403, { ok: false, error: "Partner account is suspended." });
+            return;
+          }
+          const salt = randomHex(16);
+          partner.passwordHash = hashPortalKey(password, salt);
+          partner.passwordSalt = salt;
+          partner.passwordSetAt = nowIso();
+          partner.claimClaimedAt = nowIso();
+          partner.claimTokenHash = undefined;
+          partner.claimTokenSalt = undefined;
+          partner.claimTokenExpiresAt = undefined;
+          partner.status = partner.status === "INVITED" ? "ACTIVE" : partner.status;
+          partner.updatedAt = nowIso();
+          if (!state.partnerSessions) state.partnerSessions = [];
+          const sessionToken = id("prt");
+          state.partnerSessions.unshift({ token: sessionToken, partnerId: partner.id, createdAt: nowIso() });
+          state.partnerSessions = state.partnerSessions.slice(0, 200);
+          pushActivity(state, "PARTNER", partner.id, "PARTNER_CLAIM_COMPLETED", {});
+          writeState(state);
+          partnerLoginFailLimiter.reset(ip);
+          sendJson(res, 200, { ok: true, token: sessionToken });
+        } catch (err) {
+          sendJson(res, 400, { ok: false, error: String(err) });
+        }
+      })();
+      return;
+    }
+
     if (pathname === "/api/public/referral-partner" && req.method === "GET") {
       const u = new URL(req.url || "/", "http://localhost");
       const ref = String(u.searchParams.get("ref") || "").trim();
@@ -964,6 +1416,8 @@ export function attachBackOfficeRoutes(middlewares: {
           partner.contactName = String(body.contactName || "").trim();
           partner.email = String(body.email || "").trim().toLowerCase() || undefined;
           partner.phone = String(body.phone || "").trim() || undefined;
+          partner.city = String(body.city || "").trim() || undefined;
+          partner.state = String(body.state || "").trim() || undefined;
           if (!partner.organizationName || !partner.contactName || !partner.email) {
             sendJson(res, 400, {
               ok: false,
@@ -1066,9 +1520,13 @@ export function attachBackOfficeRoutes(middlewares: {
             phone: String(body.phone || "").trim(),
             source: "PARTNER_SELF_REGISTER",
           });
+          const city = String(body.city || "").trim();
+          const stateRegion = String(body.state || "").trim();
           const intakePayload: Record<string, unknown> = {
             organizationName,
             partnerType: normalizePartnerType(body.type),
+            city: city || undefined,
+            state: stateRegion || undefined,
             partnerIntake,
             registrationPath: "PARTNER_SELF_REGISTER",
           };
@@ -1170,6 +1628,321 @@ export function attachBackOfficeRoutes(middlewares: {
     }
 
     if (pathname.startsWith("/api/partner")) {
+      if (pathname === "/api/partner/clients" && req.method === "POST") {
+        void (async () => {
+          try {
+            const pid = partnerIdFromSession(req);
+            if (!pid) {
+              sendJson(res, 401, { ok: false, error: "Unauthorized" });
+              return;
+            }
+            const body = await parseBody(req);
+            const fullName = String(body.name || "").trim();
+            const [firstName, ...rest] = fullName.split(/\s+/).filter(Boolean);
+            const email = String(body.email || "").trim().toLowerCase();
+            if (!email) {
+              sendJson(res, 400, { ok: false, error: "Email is required." });
+              return;
+            }
+            const state = readState();
+            const partner = state.partners.find((p) => p.id === pid);
+            if (!partner) {
+              sendJson(res, 404, { ok: false, error: "Partner not found" });
+              return;
+            }
+            const contact = upsertContact(state, {
+              firstName: firstName || "Client",
+              lastName: rest.join(" "),
+              email,
+              phone: String(body.phone || "").trim(),
+              source: "PARTNER_PORTAL",
+            });
+            const companyName = String(body.company || "").trim();
+            const cohortName = String(body.cohortName || "").trim();
+            let businessId: string | undefined;
+            if (companyName) {
+              const existingBusiness = state.businesses.find((b) => b.name.toLowerCase() === companyName.toLowerCase());
+              if (existingBusiness) {
+                businessId = existingBusiness.id;
+              } else {
+                const business = {
+                  id: id("biz"),
+                  name: companyName,
+                  createdAt: nowIso(),
+                  updatedAt: nowIso(),
+                };
+                state.businesses.unshift(business);
+                businessId = business.id;
+              }
+            }
+            const lead = addLead(state, {
+              contactId: contact.id,
+              businessId,
+              ctaType: "CONSULT",
+              sourceType: "PARTNER_PORTAL",
+              sourceDetail: "Partner dashboard",
+              partnerId: pid,
+              status: "None",
+              intakePayload: { createdVia: "partner_portal", cohortName: cohortName || "General" },
+            });
+            pushActivity(state, "LEAD", lead.id, "PARTNER_CLIENT_ADDED", { partnerId: pid });
+            writeState(state);
+            sendJson(res, 200, { ok: true, leadId: lead.id });
+          } catch (err) {
+            sendJson(res, 400, { ok: false, error: String(err) });
+          }
+        })();
+        return;
+      }
+      if (pathname === "/api/partner/assign-service" && req.method === "POST") {
+        void (async () => {
+          try {
+            const pid = partnerIdFromSession(req);
+            if (!pid) {
+              sendJson(res, 401, { ok: false, error: "Unauthorized" });
+              return;
+            }
+            const body = await parseBody(req);
+            const leadId = String(body.leadId || "").trim();
+            const serviceCode = serviceCodeFromRequested(String(body.serviceCode || ""));
+            if (!leadId || !serviceCode) {
+              sendJson(res, 400, { ok: false, error: "Lead and service are required." });
+              return;
+            }
+            const state = readState();
+            const lead = state.leads.find((l) => l.id === leadId && l.partnerId === pid);
+            if (!lead) {
+              sendJson(res, 404, { ok: false, error: "Client not found for this partner." });
+              return;
+            }
+            const serviceName = SERVICE_LABELS[serviceCode];
+            const existing = state.subscriptions.find((s) => s.leadId === leadId && s.planName === serviceName);
+            if (existing) {
+              existing.subscriptionStatus = "Active";
+              existing.updatedAt = nowIso();
+            } else {
+              state.subscriptions.unshift({
+                id: id("sub"),
+                leadId,
+                planName: serviceName,
+                billingStatus: "Current",
+                paymentStatus: "Pending",
+                subscriptionStatus: "Active",
+                inviteStatus: "Invited",
+                startedAt: nowIso(),
+                createdAt: nowIso(),
+                updatedAt: nowIso(),
+              });
+            }
+            pushActivity(state, "LEAD", leadId, "PARTNER_SERVICE_ASSIGNED", { serviceName, serviceCode });
+            writeState(state);
+            sendJson(res, 200, { ok: true });
+          } catch (err) {
+            sendJson(res, 400, { ok: false, error: String(err) });
+          }
+        })();
+        return;
+      }
+      if (pathname === "/api/partner/assign-collaboration-service" && req.method === "POST") {
+        void (async () => {
+          try {
+            const pid = partnerIdFromSession(req);
+            if (!pid) {
+              sendJson(res, 401, { ok: false, error: "Unauthorized" });
+              return;
+            }
+            const body = await parseBody(req);
+            const leadId = String(body.leadId || "").trim();
+            const serviceType = String(body.serviceType || "").trim().toUpperCase();
+            if (!leadId || !["STARTUP_COACHING", "PRODUCT_DEVELOPMENT", "MANAGEMENT_ADVISORY"].includes(serviceType)) {
+              sendJson(res, 400, { ok: false, error: "Client and collaboration service type are required." });
+              return;
+            }
+            const state = readState();
+            const lead = state.leads.find((l) => l.id === leadId && l.partnerId === pid);
+            if (!lead) {
+              sendJson(res, 404, { ok: false, error: "Client not found for this partner." });
+              return;
+            }
+            const payload = lead.intakePayload as Record<string, unknown>;
+            const existing = (payload.collaborationServices as Array<Record<string, unknown>> | undefined) || [];
+            const next = [
+              {
+                type: serviceType,
+                status: String(body.status || "ACTIVE").toUpperCase() === "PENDING" ? "PENDING" : "ACTIVE",
+                playbookName: typeof body.playbookName === "string" ? body.playbookName : undefined,
+                deliveryMode: body.deliveryMode === "Cohort" ? "Cohort" : body.deliveryMode === "1:1" ? "1:1" : undefined,
+                sessionStatus:
+                  body.sessionStatus === "Scheduled" || body.sessionStatus === "Completed" || body.sessionStatus === "Not started"
+                    ? body.sessionStatus
+                    : undefined,
+                engagementType: body.engagementType === "One-off" || body.engagementType === "Ongoing" ? body.engagementType : undefined,
+                projectStatus:
+                  body.projectStatus === "Scoped" ||
+                  body.projectStatus === "In build" ||
+                  body.projectStatus === "In revision" ||
+                  body.projectStatus === "Complete"
+                    ? body.projectStatus
+                    : undefined,
+              },
+              ...existing.filter((entry) => String(entry.type || "").toUpperCase() !== serviceType),
+            ];
+            lead.intakePayload = {
+              ...payload,
+              collaborationServices: next,
+            };
+            lead.updatedAt = nowIso();
+            pushActivity(state, "LEAD", leadId, "PARTNER_COLLABORATION_SERVICE_ASSIGNED", {
+              serviceType,
+              playbookName: typeof body.playbookName === "string" ? body.playbookName : undefined,
+            });
+            writeState(state);
+            sendJson(res, 200, { ok: true });
+          } catch (err) {
+            sendJson(res, 400, { ok: false, error: String(err) });
+          }
+        })();
+        return;
+      }
+      if (pathname === "/api/partner/assign-funding-readiness" && req.method === "POST") {
+        void (async () => {
+          try {
+            const pid = partnerIdFromSession(req);
+            if (!pid) {
+              sendJson(res, 401, { ok: false, error: "Unauthorized" });
+              return;
+            }
+            const body = await parseBody(req);
+            const leadId = String(body.leadId || "").trim();
+            const enrollmentType = normalizeEnrollmentType(body.enrollmentType);
+            if (!leadId) {
+              sendJson(res, 400, { ok: false, error: "Lead is required." });
+              return;
+            }
+            const state = readState();
+            const lead = state.leads.find((l) => l.id === leadId && l.partnerId === pid);
+            if (!lead) {
+              sendJson(res, 404, { ok: false, error: "Client not found for this partner." });
+              return;
+            }
+            lead.intakePayload = {
+              ...lead.intakePayload,
+              fundingReadinessEnrollmentType: enrollmentType === "NOT_ENROLLED" ? "BUSINESS" : enrollmentType,
+              fundingReadinessStatus: "Ready",
+            };
+            lead.updatedAt = nowIso();
+            const existingOpp = state.opportunities.find((o) => o.leadId === leadId);
+            if (existingOpp) {
+              existingOpp.stage = "Ready";
+              existingOpp.updatedAt = nowIso();
+            } else {
+              state.opportunities.unshift({
+                id: id("opp"),
+                leadId,
+                stage: "Ready",
+                createdAt: nowIso(),
+                updatedAt: nowIso(),
+              });
+            }
+            pushActivity(state, "LEAD", leadId, "PARTNER_FUNDING_READINESS_ASSIGNED", {
+              enrollmentType: enrollmentType === "NOT_ENROLLED" ? "BUSINESS" : enrollmentType,
+            });
+            writeState(state);
+            sendJson(res, 200, { ok: true });
+          } catch (err) {
+            sendJson(res, 400, { ok: false, error: String(err) });
+          }
+        })();
+        return;
+      }
+      if (pathname === "/api/partner/workshops" && req.method === "POST") {
+        void (async () => {
+          try {
+            const pid = partnerIdFromSession(req);
+            if (!pid) {
+              sendJson(res, 401, { ok: false, error: "Unauthorized" });
+              return;
+            }
+            const body = await parseBody(req);
+            const leadId = String(body.leadId || "").trim();
+            const workshopType = String(body.workshopType || "").trim();
+            const deliveryMode = String(body.deliveryMode || "1:1").trim() as "1:1" | "Cohort";
+            const scheduledAt = String(body.scheduledAt || "").trim();
+            if (!leadId || !workshopType || !scheduledAt) {
+              sendJson(res, 400, { ok: false, error: "Client, workshop type, and date/time are required." });
+              return;
+            }
+            const state = readState();
+            const lead = state.leads.find((l) => l.id === leadId && l.partnerId === pid);
+            if (!lead) {
+              sendJson(res, 404, { ok: false, error: "Client not found for this partner." });
+              return;
+            }
+            state.consultations.unshift({
+              id: id("consult"),
+              leadId,
+              workshopType,
+              deliveryMode: deliveryMode === "Cohort" ? "Cohort" : "1:1",
+              scheduledAt,
+              attendanceStatus: "Scheduled",
+              recommendationType: workshopType,
+              createdAt: nowIso(),
+              updatedAt: nowIso(),
+            });
+            pushActivity(state, "LEAD", leadId, "PARTNER_WORKSHOP_SCHEDULED", {
+              workshopType,
+              deliveryMode: deliveryMode === "Cohort" ? "Cohort" : "1:1",
+            });
+            writeState(state);
+            sendJson(res, 200, { ok: true });
+          } catch (err) {
+            sendJson(res, 400, { ok: false, error: String(err) });
+          }
+        })();
+        return;
+      }
+      if (pathname.match(/^\/api\/partner\/workshops\/[^/]+$/) && req.method === "PATCH") {
+        void (async () => {
+          try {
+            const pid = partnerIdFromSession(req);
+            if (!pid) {
+              sendJson(res, 401, { ok: false, error: "Unauthorized" });
+              return;
+            }
+            const workshopId = pathname.split("/")[4];
+            const body = await parseBody(req);
+            const nextStatus = String(body.status || "").trim();
+            if (!["Scheduled", "Completed", "No-show"].includes(nextStatus)) {
+              sendJson(res, 400, { ok: false, error: "Invalid workshop status." });
+              return;
+            }
+            const state = readState();
+            const consultation = state.consultations.find((c) => c.id === workshopId);
+            if (!consultation) {
+              sendJson(res, 404, { ok: false, error: "Workshop not found." });
+              return;
+            }
+            const lead = state.leads.find((l) => l.id === consultation.leadId);
+            if (!lead || lead.partnerId !== pid) {
+              sendJson(res, 403, { ok: false, error: "Workshop does not belong to this partner." });
+              return;
+            }
+            consultation.attendanceStatus = nextStatus;
+            if (nextStatus === "Completed") consultation.completedAt = nowIso();
+            if (nextStatus === "Scheduled") consultation.completedAt = undefined;
+            consultation.updatedAt = nowIso();
+            pushActivity(state, "CONSULTATION", consultation.id, "PARTNER_WORKSHOP_STATUS_UPDATED", {
+              status: nextStatus,
+              leadId: consultation.leadId,
+            });
+            writeState(state);
+            sendJson(res, 200, { ok: true });
+          } catch (err) {
+            sendJson(res, 400, { ok: false, error: String(err) });
+          }
+        })();
+        return;
+      }
       if (pathname === "/api/partner/set-password" && req.method === "POST") {
         void (async () => {
           try {
@@ -1199,6 +1972,90 @@ export function attachBackOfficeRoutes(middlewares: {
             partner.passwordSalt = salt;
             partner.passwordSetAt = nowIso();
             partner.updatedAt = nowIso();
+            writeState(state);
+            sendJson(res, 200, { ok: true });
+          } catch (err) {
+            sendJson(res, 400, { ok: false, error: String(err) });
+          }
+        })();
+        return;
+      }
+      if (pathname === "/api/partner/profile" && req.method === "POST") {
+        void (async () => {
+          try {
+            const pid = partnerIdFromSession(req);
+            if (!pid) {
+              sendJson(res, 401, { ok: false, error: "Unauthorized" });
+              return;
+            }
+            const body = await parseBody(req);
+            const organizationName = String(body.organizationName ?? "").trim();
+            const contactName = String(body.contactName ?? "").trim();
+            const email = String(body.email ?? "").trim().toLowerCase();
+            if (!organizationName) {
+              sendJson(res, 400, { ok: false, error: "Organization name is required." });
+              return;
+            }
+            if (organizationName.length > 160) {
+              sendJson(res, 400, { ok: false, error: "Organization name is too long (160 characters max)." });
+              return;
+            }
+            if (!contactName) {
+              sendJson(res, 400, { ok: false, error: "Contact name is required." });
+              return;
+            }
+            if (contactName.length > 120) {
+              sendJson(res, 400, { ok: false, error: "Contact name is too long (120 characters max)." });
+              return;
+            }
+            if (!email) {
+              sendJson(res, 400, { ok: false, error: "Email is required." });
+              return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+              sendJson(res, 400, { ok: false, error: "Enter a valid email address." });
+              return;
+            }
+            const state = readState();
+            const partner = state.partners.find((p) => p.id === pid);
+            if (!partner) {
+              sendJson(res, 404, { ok: false, error: "Partner not found" });
+              return;
+            }
+            if (partner.status === "SUSPENDED") {
+              sendJson(res, 403, { ok: false, error: "Partner account is suspended" });
+              return;
+            }
+            const emailTakenByOther = state.partners.some(
+              (p) => p.id !== partner.id && String(p.email || "").trim().toLowerCase() === email
+            );
+            if (emailTakenByOther) {
+              sendJson(res, 400, { ok: false, error: "That email is already used by another partner account." });
+              return;
+            }
+            partner.organizationName = organizationName;
+            partner.contactName = contactName;
+            partner.email = email;
+            const city = String(body.city ?? "").trim();
+            const st = String(body.state ?? "").trim();
+            const phone = String(body.phone ?? "").trim();
+            if (city.length > 80) {
+              sendJson(res, 400, { ok: false, error: "City is too long (80 characters max)." });
+              return;
+            }
+            if (st.length > 48) {
+              sendJson(res, 400, { ok: false, error: "State or region is too long (48 characters max)." });
+              return;
+            }
+            if (phone.length > 40) {
+              sendJson(res, 400, { ok: false, error: "Phone is too long (40 characters max)." });
+              return;
+            }
+            partner.city = city || undefined;
+            partner.state = st || undefined;
+            partner.phone = phone || undefined;
+            partner.updatedAt = nowIso();
+            pushActivity(state, "PARTNER", partner.id, "PARTNER_PROFILE_UPDATED", {});
             writeState(state);
             sendJson(res, 200, { ok: true });
           } catch (err) {
@@ -1548,6 +2405,38 @@ export function attachBackOfficeRoutes(middlewares: {
       return;
     }
 
+    if (pathname.match(/^\/api\/backoffice\/partners\/[^/]+\/claim-link$/) && req.method === "POST") {
+      void (async () => {
+        const state = readState();
+        const partnerId = pathname.split("/")[4];
+        const partner = state.partners.find((p) => p.id === partnerId);
+        if (!partner) {
+          sendJson(res, 404, { ok: false, error: "Partner not found" });
+          return;
+        }
+        if (!String(partner.email || "").trim()) {
+          sendJson(res, 400, { ok: false, error: "Partner has no email on file" });
+          return;
+        }
+        if (partner.status === "SUSPENDED") {
+          sendJson(res, 400, { ok: false, error: "Cannot generate claim link for suspended partner" });
+          return;
+        }
+        const token = assignClaimTokenToPartner(state, partner);
+        const claimUrl = partnerClaimLink(token);
+        pushActivity(state, "PARTNER", partnerId, "PARTNER_CLAIM_LINK_ISSUED", {});
+        writeState(state);
+        sendJson(res, 200, {
+          ok: true,
+          claimUrl,
+          expiresAt: partner.claimTokenExpiresAt,
+          message: "Claim link generated. Share it once; it expires after first use or in 24 hours.",
+          partner: sanitizePartnerAdmin(partner),
+        });
+      })();
+      return;
+    }
+
     if (pathname.match(/^\/api\/backoffice\/partners\/[^/]+\/approval-invite$/) && req.method === "POST") {
       void (async () => {
         const state = readState();
@@ -1694,6 +2583,9 @@ export function attachBackOfficeRoutes(middlewares: {
           partner.defaultCommissionRate = Number.isFinite(r)
             ? Math.min(0.5, Math.max(0, r))
             : partner.defaultCommissionRate;
+        }
+        if (partner.status === "SUSPENDED") {
+          state.partnerSessions = (state.partnerSessions || []).filter((s) => s.partnerId !== partnerId);
         }
         partner.updatedAt = nowIso();
         pushActivity(state, "PARTNER", partnerId, "PARTNER_UPDATED", {});

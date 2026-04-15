@@ -100,13 +100,12 @@ export function ReadinessDemoPreview() {
     <div className="w-full">
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-12 xl:gap-14">
         <div className="min-w-0 lg:max-w-xl xl:max-w-none">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ori-accent/90">Funding readiness</p>
-          <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl">
             Qualify before you apply
           </h2>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-ori-muted md:text-lg">
-            The Fundability System helps entrepreneurs identify gaps, strengthen the signals lenders evaluate, and prepare
-            for funding with more clarity.
+            Most funding decisions are made before you ever submit an application. The Fundability System helps you
+            identify gaps, strengthen your signal, and approach funding with clarity and better odds.
           </p>
           <ul className="mt-6 space-y-3 text-sm text-ori-foreground md:text-base">
             {BULLETS.map((text) => (

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 
 /** Tooltip portal z-index: above modals/drawers (e.g. Drawer uses 9999). */
@@ -23,7 +23,7 @@ export function InfoPopover({ title, content, openAbove = false, className = "",
   const triggerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     const trigger = triggerRef.current;
     const contentEl = contentRef.current;
     if (!trigger) return;
@@ -56,7 +56,7 @@ export function InfoPopover({ title, content, openAbove = false, className = "",
       );
       setPosition({ top, left });
     }
-  };
+  }, [openAbove]);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -65,18 +65,19 @@ export function InfoPopover({ title, content, openAbove = false, className = "",
     window.addEventListener("scroll", onScrollOrResize, true);
     window.addEventListener("resize", onScrollOrResize);
     const raf = requestAnimationFrame(() => updatePosition());
+    const observedEl = contentRef.current;
     const ro =
-      contentRef.current &&
+      observedEl &&
       typeof ResizeObserver !== "undefined" &&
       new ResizeObserver(() => updatePosition());
-    if (ro && contentRef.current) ro.observe(contentRef.current);
+    if (ro && observedEl) ro.observe(observedEl);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScrollOrResize, true);
       window.removeEventListener("resize", onScrollOrResize);
-      if (ro && contentRef.current) ro.unobserve(contentRef.current);
+      if (ro && observedEl) ro.unobserve(observedEl);
     };
-  }, [open, openAbove]);
+  }, [open, updatePosition]);
 
   useEffect(() => {
     if (!open) return;
@@ -120,17 +121,17 @@ export function InfoPopover({ title, content, openAbove = false, className = "",
         onMouseLeave={() => setOpen(false)}
       >
         {children}
-        <span
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           aria-expanded={open}
           aria-label={`Info: ${title}`}
-          className="inline-flex h-5 w-5 shrink-0 cursor-default items-center justify-center rounded-full border border-ori-border bg-ori-charcoal text-ori-muted hover:border-ori-accent/50 hover:text-ori-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent"
+          onClick={() => setOpen((v) => !v)}
+          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-ori-border bg-ori-charcoal text-ori-muted hover:border-ori-accent/50 hover:text-ori-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent"
         >
           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-        </span>
+        </button>
       </div>
       {tooltipContent && createPortal(tooltipContent, document.body)}
     </>

@@ -8,9 +8,29 @@ export const ROUTES = {
   HOME: "/",
   ADMIN: "/admin",
   PARTNER_PORTAL: "/partner",
+  /** Partner portal sign-in (alias for flows that reference `ROUTES.PARTNER`). */
+  PARTNER: "/partner",
   PARTNER_REGISTER: "/partner/register",
   REFERRAL: "/referral",
   TESTIMONIAL: "/testimonial",
+
+  MANAGEMENT: "/management",
+  MANAGEMENT_FORMATION: "/management/formation",
+  MANAGEMENT_BUSINESS_PROFILE: "/management/business-profile",
+  MANAGEMENT_BUSINESS_BUILDER: "/management/business-builder",
+  MANAGEMENT_HOSTING: "/management/hosting",
+  MANAGEMENT_CRM_GROWTH: "/management/crm-growth",
+
+  CONSULTING: "/consulting",
+  CONSULTING_COACHING: "/consulting/coaching",
+  CONSULTING_STRUCTURING: "/consulting/structuring",
+  CONSULTING_CAPITAL_STRATEGY: "/consulting/capital-strategy",
+  CONSULTING_PRODUCT_DEVELOPMENT: "/consulting/product-development",
+  CONSULTING_BOOK: "/consulting/book",
+
+  CAPITAL: "/capital",
+  /** Capital as a pillar with Consulting & Management (legacy “Raise from leverage” hub). */
+  CAPITAL_LEVERAGE: "/capital/leverage",
   FUNDING: "/funding",
   APPLY: "/apply",
   FUNDING_READINESS: "/funding-readiness",
@@ -19,7 +39,10 @@ export const ROUTES = {
   FUNDING_READINESS_ENROLL_THREE_STEP: "/funding-readiness/enroll/three-step",
   FUNDING_READINESS_ENROLL_THREE_STEP_RETURN: "/funding-readiness/enroll/three-step/return",
   FUNDING_READINESS_SURVEY: "/funding-readiness-survey",
-  APPROACH: "/approach",
+
+  /** Primary intake — discovery survey (same path as `FUNDING_READINESS_SURVEY`). */
+  GET_STARTED: "/funding-readiness-survey",
+
   INSIGHTS: "/insights",
   PARTNERS: "/partners",
   ABOUT: "/about",
@@ -49,3 +72,6 @@ export function navigateTo(
     });
   }
 }
+
+/** Last non-contact SPA path, for contact-form attribution (sessionStorage). */
+export const CONTACT_ATTRIBUTION_PRIOR_ROUTE_KEY = "ori_prior_route";

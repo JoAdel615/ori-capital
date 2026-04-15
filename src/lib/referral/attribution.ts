@@ -7,27 +7,50 @@ import { apiUrl } from "../apiBase";
 
 export const REFERRAL_STORAGE_KEY = "ori_referral_code";
 
+function referralSessionStorage(): Storage | null {
+  try {
+    return (globalThis as unknown as { window?: Window }).window?.sessionStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function normalizeReferralCode(raw: string | null | undefined): string {
   return String(raw ?? "").trim();
 }
 
 export function persistReferralCode(code: string): void {
   const c = normalizeReferralCode(code);
-  if (typeof window === "undefined" || !c) return;
+  const storage = referralSessionStorage();
+  if (!c || !storage) return;
   try {
-    sessionStorage.setItem(REFERRAL_STORAGE_KEY, c);
+    storage.setItem(REFERRAL_STORAGE_KEY, c);
   } catch {
     /* quota / private mode */
   }
 }
 
 export function getStoredReferralCode(): string {
-  if (typeof window === "undefined") return "";
+  const storage = referralSessionStorage();
+  if (!storage) return "";
   try {
-    return normalizeReferralCode(sessionStorage.getItem(REFERRAL_STORAGE_KEY));
+    return normalizeReferralCode(storage.getItem(REFERRAL_STORAGE_KEY));
   } catch {
     return "";
   }
+}
+
+/**
+ * Partner code for checkout and paid flows: `?ref=` / `?referral=` wins, then
+ * sessionStorage from the referral landing (see `persistReferralCode`).
+ */
+export function resolveCheckoutReferralCode(input?: {
+  ref?: string | null;
+  referral?: string | null;
+}): string {
+  const fromUrl = normalizeReferralCode(input?.ref ?? input?.referral);
+  if (fromUrl) return fromUrl;
+  return getStoredReferralCode();
 }
 
 /** Append ?ref= or &ref= to an internal path. */

@@ -25,7 +25,14 @@ export interface PartnerIntakePayload {
   fundingNeedFrequency?: string;
   partnershipInterest?: string;
   estimatedReferralsPerMonth?: string;
+  currentClientGap?: string;
   additionalNotes?: string;
+  source_page?: string;
+  entry_cta?: string;
+  partner_type_preselected?: string;
+  utm_source?: string;
+  utm_campaign?: string;
+  referral_partner?: string;
 }
 
 export interface ContactRecord {
@@ -118,6 +125,10 @@ export interface SubscriptionEnrollmentRecord {
 export interface ConsultationRecord {
   id: string;
   leadId: string;
+  /** Partner-facing workshop type (e.g. Model & Offer). */
+  workshopType?: string;
+  /** Partner-facing workshop delivery mode. */
+  deliveryMode?: "1:1" | "Cohort";
   scheduledAt?: string;
   confirmedAt?: string;
   completedAt?: string;
@@ -160,6 +171,12 @@ export interface PartnerRecord {
   invitePending?: boolean;
   inviteToken?: string;
   inviteExpiresAt?: string;
+  /** One-time partner claim link (hashed token only, never exposed). */
+  claimTokenHash?: string;
+  claimTokenSalt?: string;
+  claimTokenIssuedAt?: string;
+  claimTokenExpiresAt?: string;
+  claimClaimedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

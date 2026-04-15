@@ -17,7 +17,7 @@ export function AboutPage() {
       <PageSection variant="normal" className="bg-ori-black section-divider">
         <TrustSectionIntro title="What Ori Capital is" />
         <div className="max-w-3xl text-base leading-relaxed text-ori-muted">
-          Ori Capital is a strategic capital platform helping businesses access funding through better positioning, stronger readiness, and more informed decision-making-not just more applications.
+          Ori Capital is a strategic capital solutions business helping entrepreneurs access funding through better positioning, stronger readiness, and smarter decisions-not just more applications.
         </div>
       </PageSection>
 

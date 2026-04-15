@@ -23,17 +23,30 @@ const BASE_URL = process.argv[2] || "http://localhost:5173";
 const OUT_DIR =
   process.env.ORI_SCREENSHOTS_DIR || join(homedir(), "Developer", "ori capital screenshots");
 
-/** All in-app routes (see App.tsx). Redirects omitted. */
+/** All in-app routes (sync with `src/App.tsx`). Redirect routes omitted — use canonical paths. */
 const ROUTES = [
+  { path: "/management", name: "management" },
+  { path: "/management/formation", name: "management-formation" },
+  { path: "/management/business-profile", name: "management-business-profile" },
+  { path: "/management/business-builder", name: "management-business-builder" },
+  { path: "/management/hosting", name: "management-hosting" },
+  { path: "/management/crm-growth", name: "management-crm-growth" },
+  { path: "/consulting", name: "consulting" },
+  { path: "/consulting/coaching", name: "consulting-coaching" },
+  { path: "/consulting/structuring", name: "consulting-structuring" },
+  { path: "/consulting/capital-strategy", name: "consulting-capital-strategy" },
+  { path: "/consulting/book", name: "consulting-book" },
+  { path: "/capital", name: "capital" },
+  { path: "/capital/leverage", name: "capital-leverage" },
   { path: "/funding", name: "access-capital" },
   { path: "/apply", name: "apply-prequalify" },
-  { path: "/testimonial", name: "testimonial" },
-  { path: "/approach", name: "approach" },
   { path: "/funding-readiness", name: "funding-readiness" },
+  { path: "/funding-readiness/individual", name: "funding-readiness-individual" },
   { path: "/funding-readiness/enroll", name: "funding-readiness-enroll" },
   { path: "/funding-readiness/enroll/three-step", name: "funding-readiness-enroll-three-step" },
   { path: "/funding-readiness/enroll/three-step/return", name: "funding-readiness-enroll-three-step-return" },
   { path: "/funding-readiness-survey", name: "funding-readiness-survey" },
+  { path: "/approach", name: "approach" },
   { path: "/insights", name: "insights" },
   { path: "/insights/what-lenders-look-at-before-approving-financing", name: "insights-what-lenders-look-at" },
   { path: "/insights/why-businesses-get-denied", name: "insights-why-denied" },
@@ -43,21 +56,30 @@ const ROUTES = [
   { path: "/partners", name: "partners" },
   { path: "/about", name: "about" },
   { path: "/contact", name: "contact" },
+  { path: "/admin", name: "admin" },
+  { path: "/partner/register", name: "partner-register" },
+  { path: "/partner", name: "partner-portal" },
+  { path: "/referral", name: "referral" },
+  { path: "/testimonial", name: "testimonial" },
   { path: "/legal/privacy", name: "legal-privacy" },
   { path: "/legal/terms", name: "legal-terms" },
   { path: "/legal/disclosures", name: "legal-disclosures" },
-  { path: "/admin", name: "admin" },
+  { path: "/get-started", name: "get-started" },
+  { path: "/pricing", name: "pricing" },
+  { path: "/__screenshot-not-found-route", name: "not-found" },
 ];
 
-/** Home: scroll targets for section thumbnails (viewport-sized). */
+/** Home: viewport-sized section thumbnails (see `HomePage.tsx`). */
 const HOME_SECTION_SCROLLS = [
   { name: "home-section-01-hero", scrollY: 0 },
-  { name: "home-section-02-funding-gap", selector: "#funding-spectrum-heading" },
-  { name: "home-section-03-how-it-works", selector: "#how-it-works" },
-  { name: "home-section-04-lenders-evaluate", role: "heading", roleName: "What lenders actually evaluate" },
-  { name: "home-section-05-funding-aligned", role: "heading", roleName: "Funding aligned with your business, not guesswork" },
-  { name: "home-section-06-prepare-apply", role: "heading", roleName: "Qualify before you apply" },
-  { name: "home-section-07-learn-funding", role: "heading", roleName: "Learn how funding actually works" },
+  { name: "home-section-02-pillars", selector: "#pillars" },
+  { name: "home-section-03-practice", role: "heading", roleName: "What this looks like in practice" },
+  { name: "home-section-04-guided-path", role: "heading", roleName: "New business or existing business? Start with the right path." },
+  { name: "home-section-05-solution-suite", role: "heading", roleName: "Choose your solution suite" },
+  { name: "home-section-06-onramp", role: "heading", roleName: "How the Ori onramp works" },
+  { name: "home-section-07-learn", role: "heading", roleName: "Learn before you buy" },
+  { name: "home-section-08-partners", role: "heading", roleName: "Partner with Ori" },
+  { name: "home-section-09-help", role: "heading", roleName: "Need help choosing the right path?" },
 ];
 
 async function main() {

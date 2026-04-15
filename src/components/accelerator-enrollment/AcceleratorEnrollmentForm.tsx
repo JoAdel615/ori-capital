@@ -7,7 +7,7 @@
 import { Button } from "../Button";
 import { Input } from "../Input";
 import { SegmentedToggle } from "../SegmentedToggle";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { BillingType, TierId, SelectedEnrollments } from "../../data/fundingReadinessPricing";
 import {
   PLANS,
@@ -16,10 +16,11 @@ import {
   formatPrice,
   getPlanPriceDisplay,
   getIndividualStandalonePriceDisplay,
+  getIndividualReadinessAddOnDisplay,
   individualTierDisplayName,
 } from "../../data/fundingReadinessPricing";
 import { ROUTES } from "../../utils/navigation";
-import { FundingReadinessCrossSellCard } from "../FundingReadinessCrossSellCard";
+import { calculatePromo } from "../../lib/checkoutPromotions";
 
 export interface CheckoutFormData {
   firstName: string;
@@ -50,7 +51,11 @@ export const initialCheckoutFormData: CheckoutFormData = {
 export interface AcceleratorPayPayload {
   formData: CheckoutFormData;
   selectedEnrollments: SelectedEnrollments;
+  promoCode?: string;
+  paymentMethod: EnrollmentPaymentMethod;
 }
+
+export type EnrollmentPaymentMethod = "card" | "bank" | "paypal";
 
 interface AcceleratorEnrollmentFormProps {
   selectedEnrollments: SelectedEnrollments;
@@ -58,6 +63,8 @@ interface AcceleratorEnrollmentFormProps {
   formData: CheckoutFormData;
   onFormChange: (data: CheckoutFormData) => void;
   onPay: (payload: AcceleratorPayPayload) => Promise<void>;
+  paymentMethod: EnrollmentPaymentMethod;
+  onPaymentMethodChange: (method: EnrollmentPaymentMethod) => void;
   submitting?: boolean;
   paymentError?: string | null;
 }
@@ -75,6 +82,8 @@ export function AcceleratorEnrollmentForm({
   formData,
   onFormChange,
   onPay,
+  paymentMethod,
+  onPaymentMethodChange,
   submitting = false,
   paymentError,
 }: AcceleratorEnrollmentFormProps) {
@@ -106,6 +115,12 @@ export function AcceleratorEnrollmentForm({
       businessAddOn: { tier },
     });
 
+  const setIndividualAddOnEnabled = (enabled: boolean) =>
+    onEnrollmentsChange({
+      ...selectedEnrollments,
+      individualReadinessAddOn: enabled,
+    });
+
   const billingOk =
     formData.streetAddress.trim() &&
     formData.city.trim() &&
@@ -124,13 +139,26 @@ export function AcceleratorEnrollmentForm({
 
   async function handleContinue() {
     if (!canContinue || submitting) return;
-    await onPay({ formData, selectedEnrollments });
+    await onPay({
+      formData,
+      selectedEnrollments,
+      promoCode: promo.appliedCode || undefined,
+      paymentMethod,
+    });
   }
 
   const sectionClass = "space-y-3 rounded-lg border border-ori-border bg-ori-charcoal/40 p-4";
   const headingClass = "font-display text-sm font-semibold text-ori-foreground";
   const inputClass = "py-2 px-2.5 text-sm";
+  const paymentMethodOptions: { value: EnrollmentPaymentMethod; label: string }[] = [
+    { value: "card", label: "Card" },
+    { value: "bank", label: "Bank" },
+    { value: "paypal", label: "PayPal" },
+  ];
   const summary = useMemo(() => computeOrderSummary(selectedEnrollments), [selectedEnrollments]);
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [promoCodeApplied, setPromoCodeApplied] = useState("");
+  const promo = calculatePromo(summary.dueTodayTotal, promoCodeApplied);
 
   const planSummary = useMemo(() => {
     if (selectedEnrollments.individualStandalone) {
@@ -231,9 +259,9 @@ export function AcceleratorEnrollmentForm({
                 <div className="rounded-md border border-ori-border bg-ori-surface/60 p-3">
                   <label className="flex cursor-pointer items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-ori-foreground">Add business funding readiness</p>
+                      <p className="text-sm font-medium text-ori-foreground">Add Business Readiness to this order</p>
                       <p className="mt-1 text-xs text-ori-muted">
-                        Include Business Core or Business Pro at the same billing cadence (company name required).
+                        Add Business Core or Business Pro at the same billing cadence (company name required).
                       </p>
                     </div>
                     <input
@@ -290,12 +318,32 @@ export function AcceleratorEnrollmentForm({
                   </div>
                 ) : null}
 
-                <FundingReadinessCrossSellCard
-                  title="Need individual funding readiness too?"
-                  description="Funding readiness: Individual Core or Individual Plus—enroll separately on the individual track."
-                  ctaLabel="View individual plans"
-                  to={ROUTES.FUNDING_READINESS_INDIVIDUAL}
-                />
+                <div className="rounded-md border border-ori-border bg-ori-surface/60 p-3">
+                  <label className="flex cursor-pointer items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-ori-foreground">
+                        Add Individual Readiness ({getIndividualReadinessAddOnDisplay(selectedEnrollments.business.billing).primary})
+                      </p>
+                      <p className="mt-1 text-xs text-ori-muted">
+                        Add Individual Core directly in this checkout.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={!!selectedEnrollments.individualReadinessAddOn}
+                      onChange={(e) => setIndividualAddOnEnabled(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-ori-border bg-ori-charcoal text-ori-accent focus:ring-ori-accent"
+                      aria-label="Add Individual Readiness"
+                    />
+                  </label>
+                  <p className="mt-2 text-[11px] text-ori-muted">
+                    Prefer Individual Plus?{" "}
+                    <a className="text-ori-accent hover:text-ori-accent-2" href={ROUTES.FUNDING_READINESS_INDIVIDUAL}>
+                      Switch to individual checkout
+                    </a>
+                    .
+                  </p>
+                </div>
               </div>
             ) : (
               <p className="text-xs text-ori-muted">Loading plan selection…</p>
@@ -360,18 +408,76 @@ export function AcceleratorEnrollmentForm({
                     ))}
                   </ul>
                   <div className="mt-3 border-t border-ori-border pt-3">
+                    <div className="mb-2 flex items-center justify-end text-[11px] text-ori-muted">
+                      {promo.appliedCode ? <span>Applied: {promo.appliedCode}</span> : null}
+                    </div>
+                    <div className="mb-3 flex items-end gap-2">
+                      <Input
+                        label="Promo Code"
+                        value={promoCodeInput}
+                        onChange={(e) => setPromoCodeInput(e.target.value)}
+                        className={inputClass}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap"
+                        onClick={() => setPromoCodeApplied(promoCodeInput.trim())}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                    {promoCodeApplied && !promo.appliedCode ? (
+                      <p className="mb-2 text-[11px] text-amber-300">
+                        Code not recognized. Continue without discount or try a different code.
+                      </p>
+                    ) : null}
+                    {promo.appliedCode ? (
+                      <div className="mb-2 flex justify-between text-xs text-ori-foreground">
+                        <span>Discount ({promo.appliedCode})</span>
+                        <span>-{formatPrice(promo.discountAmount)}</span>
+                      </div>
+                    ) : null}
                     <div className="flex justify-between text-xs font-semibold text-ori-foreground">
                       <span>Due today</span>
-                      <span>{formatPrice(summary.dueTodayTotal)}</span>
+                      <span>{formatPrice(promo.dueTodayAfterDiscount)}</span>
                     </div>
                     {summary.hasRecurring && summary.recurringNote ? (
                       <p className="mt-1 text-[11px] text-ori-muted">Recurring: {summary.recurringNote}</p>
                     ) : null}
+                    <p className="mt-2 text-[11px] text-ori-muted">
+                      One-time setup covers your initial profile audit and setup. Recurring covers ongoing support,
+                      tracking, and execution.
+                    </p>
                   </div>
                 </>
               )}
             </div>
           </section>
+
+          <section className={sectionClass}>
+            <h2 className={headingClass}>Payment Method</h2>
+            <div className="rounded-lg border border-ori-border bg-ori-surface/40 p-3">
+              <SegmentedToggle
+                options={paymentMethodOptions}
+                value={paymentMethod}
+                onChange={(value) => onPaymentMethodChange(value as EnrollmentPaymentMethod)}
+                ariaLabel="Choose payment method"
+              />
+              <p className="mt-2 text-xs text-ori-foreground">
+                {paymentMethod === "card"
+                  ? "Card form will open on the next secure step."
+                  : paymentMethod === "bank"
+                    ? "Bank account form will open on the next secure step."
+                    : "PayPal authorization step will open next."}
+              </p>
+              <p className="mt-1 text-[11px] text-ori-muted">
+                Secure payment. Encrypted and processed safely.
+              </p>
+            </div>
+          </section>
+
         </div>
       </div>
 
@@ -388,8 +494,16 @@ export function AcceleratorEnrollmentForm({
           disabled={submitting || !canContinue}
           onClick={handleContinue}
         >
-          {submitting ? "Preparing secure checkout..." : "Continue to secure card entry"}
+          {submitting ? "Preparing secure checkout..." : "Start my readiness plan"}
         </Button>
+        <p className="mt-2 text-center text-[11px] text-ori-muted">
+          You're not applying for funding here - you're preparing to get approved.
+        </p>
+        <p className="mt-1 text-center text-[11px]">
+          <a href={ROUTES.CONTACT} className="text-ori-accent hover:text-ori-accent-2">
+            Not ready? Talk to us first
+          </a>
+        </p>
       </div>
     </div>
   );

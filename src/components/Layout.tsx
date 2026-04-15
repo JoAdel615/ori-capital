@@ -1,45 +1,33 @@
+import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { JsonLd } from "./JsonLd";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 import { RouteErrorBoundary } from "./ErrorBoundary";
 import { useDocumentHead } from "../hooks/useDocumentHead";
 import { descriptionForPath } from "../lib/seo/routeDescriptions";
-
-const routeTitles: Record<string, string> = {
-  "/": "",
-  "/funding": "Funding",
-  "/access-capital": "Funding",
-  "/apply": "Apply for Funding",
-  "/admin": "Admin",
-  "/partner": "Partner portal",
-  "/partner/register": "Apply to Partner",
-  "/referral": "Referred to Ori",
-  "/testimonial": "Share your experience",
-  "/pre-qualify": "Apply for Funding",
-  "/approach": "Approach",
-  "/funding-readiness": "Funding Readiness",
-  "/funding-readiness/individual": "Individual Readiness",
-  "/funding-readiness/enroll": "Enroll — Funding Readiness Accelerator",
-  "/funding-readiness/enroll/three-step": "Accelerator checkout",
-  "/funding-readiness/enroll/three-step/return": "Enrollment complete",
-  "/funding-readiness-survey": "Funding Readiness Survey",
-  "/insights": "Insights",
-  "/partners": "Partner With Ori",
-  "/about": "About",
-  "/contact": "Contact",
-  "/legal/privacy": "Privacy Policy",
-  "/legal/terms": "Terms of Service",
-  "/legal/disclosures": "Disclosures",
-};
+import { shouldNoIndexPath } from "../lib/seo/indexing";
+import { titleSegmentForPath } from "../lib/seo/routeTitles";
+import { CONTACT_ATTRIBUTION_PRIOR_ROUTE_KEY, ROUTES } from "../utils/navigation";
 
 export function Layout() {
   const { pathname } = useLocation();
-  const titleSegment =
-    routeTitles[pathname] ?? (pathname.startsWith("/insights/") ? "Insights" : undefined);
+
+  useEffect(() => {
+    if (pathname === ROUTES.CONTACT) return;
+    try {
+      sessionStorage.setItem(CONTACT_ATTRIBUTION_PRIOR_ROUTE_KEY, pathname);
+    } catch {
+      /* ignore */
+    }
+  }, [pathname]);
+  const noIndex = shouldNoIndexPath(pathname);
+  const titleSegment = titleSegmentForPath(pathname);
   useDocumentHead({
     titleSegment,
     description: descriptionForPath(pathname),
     canonicalPath: pathname,
+    noIndex,
   });
 
   return (
@@ -53,7 +41,8 @@ export function Layout() {
           <Outlet />
         </RouteErrorBoundary>
       </main>
-      <Footer />
+      {pathname !== ROUTES.HOME ? <Footer /> : null}
+      <JsonLd />
     </div>
   );
 }

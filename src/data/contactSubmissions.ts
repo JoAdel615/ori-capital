@@ -9,11 +9,11 @@ export const CONTACT_SUBMISSIONS_KEY = "ori_contact_submissions";
 export const READINESS_LAST_SNAPSHOT_KEY = "ori_readiness_survey_last_snapshot";
 
 export const REFERRAL_OPTIONS = [
-  "Google or search engine",
-  "Social media",
-  "Podcast, webinar, or event",
-  "Accelerator, investor, or partner",
-  "Email or newsletter",
+  "Search",
+  "Social",
+  "Referral",
+  "Event or content",
+  "Email",
   "Other",
 ] as const;
 
@@ -33,11 +33,23 @@ export interface ContactSubmission {
   phone: string;
   companyName: string;
   message: string;
+  /** Primary intent / routing label from the contact form */
   quickReason: string | null;
   referralSource: ReferralOption | string;
   /** When referral is "Other", user-specified referrer name or detail */
   referralOtherDetail: string;
   surveySnapshot: SurveySnapshot | null;
+  /** Lifecycle stage (optional for legacy rows) */
+  stage?: string | null;
+  subjectType?: "individual" | "business" | null;
+  industry?: string;
+  revenueRange?: string;
+  source_page?: string;
+  entry_cta?: string;
+  intent_preselected?: string | null;
+  referrer_partner?: string;
+  utm_source?: string;
+  utm_campaign?: string;
 }
 
 const READINESS_FIELD_LABELS: Partial<Record<keyof ReadinessAnswers, string>> = {

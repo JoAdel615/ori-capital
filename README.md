@@ -8,6 +8,17 @@ Institution-grade, dark-mode website for Ori Capital: alternative capital platfo
 - **Tailwind CSS v4** (dark theme, design system)
 - **React Router 7** (client-side routing)
 
+## Documentation
+
+- **[Ori Digital Product Standard](docs/ORI_DIGITAL_PRODUCT_STANDARD.md)** — Brand pillars (Consulting → Management → Capital), design/content/analytics guardrails, layout diversity, product identity.
+- **[Platform lifecycle, IA & design system](docs/PLATFORM_LIFECYCLE_SPEC.md)** — Canonical spec: pillars, lifecycle narrative, IA, design system, phased roadmap, governance.
+- **[Phase 0 deliverables](docs/PHASE_0_DELIVERABLES.md)** — Sitemap v1, archetypes A1–A6, messaging matrix, immutable URLs (sign-off table).
+- **Phase 1 foundations (code)** — `src/design/FOUNDATIONS.md`, `src/design/tokens.ts`, semantic tokens and `ori-type-*` / `ori-pillar-band-*` in `src/index.css`.
+- **Routes (pillars)** — `/management`, `/consulting`, `/capital`, `/get-started`, `/pricing` (see `src/App.tsx` and `src/utils/navigation.ts`).
+- **[Analytics events](docs/ANALYTICS_EVENTS.md)** — Custom GA4 / Meta events (`src/lib/analytics/oriEvents.ts`).
+- **[Accessibility checklist](docs/PHASE_9_ACCESSIBILITY.md)** — Release-gate quality bar (manual); pair with `npm run test` and `npm run test:e2e` for automated checks.
+- **[Composition inventory](docs/COMPOSITIONS.md)** — When to use each section composition and archetype mapping.
+
 ## Develop
 
 ```bash
@@ -15,7 +26,13 @@ npm install
 npm run dev
 ```
 
-**Checks:** `npm run lint` · `npm run test` · `npm run test:e2e` (first time: `npx playwright install chromium`). CI runs build, lint, unit tests, and e2e smoke against `vite preview`.
+**Checks:** `npm run ci` (lint + unit tests + build), then `npm run test:e2e` locally (first time: `npx playwright install chromium`). **GitHub Actions** (`.github/workflows/ci.yml`) runs the same on push/PR: lint, Vitest, production build, and Playwright smoke against `vite preview`.
+
+SEO governance is enforced in tests (`src/lib/seo/routeDescriptions.test.ts`, `src/lib/seo/routeCoverage.test.ts`, `src/lib/seo/routeTitles.test.ts`, `src/lib/seo/indexing.test.ts`, `src/lib/seo/routeGovernance.test.ts`).
+
+Route-level code-splitting is enabled in `src/App.tsx` via `React.lazy` + `Suspense`.
+
+E2E smoke now covers lifecycle hubs and noindex policy on utility routes.
 
 Open [https://localhost:5173](https://localhost:5173) (HTTPS in dev via `@vitejs/plugin-basic-ssl`). Form submissions POST to `/api/*`; the Vite dev/preview server runs local middleware (readiness scoring, payments, back office, partner APIs). Unhandled `/api` routes are not faked—use the real handlers above or your own proxy.
 

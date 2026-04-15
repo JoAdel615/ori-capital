@@ -10,6 +10,7 @@ import {
   AcceleratorEnrollmentForm,
   initialCheckoutFormData,
   type AcceleratorPayPayload,
+  type EnrollmentPaymentMethod,
 } from "../components/accelerator-enrollment";
 import type { CheckoutFormData } from "../components/accelerator-enrollment";
 import { apiUrl } from "../lib/apiBase";
@@ -19,6 +20,8 @@ import {
   type BillingType,
   type SelectedEnrollments,
 } from "../data/fundingReadinessPricing";
+import { getCheckoutPricing } from "../lib/checkoutPromotions";
+import { resolveCheckoutReferralCode } from "../lib/referral/attribution";
 
 function parseBillingParam(v: string | null): BillingType | undefined {
   if (v === "weekly" || v === "monthly" || v === "full") return v;
@@ -30,7 +33,7 @@ export function AcceleratorEnrollmentPage() {
   const planParam = searchParams.get("plan");
   const productParam = searchParams.get("product");
   const billingParam = searchParams.get("billing");
-  const referralCode = (searchParams.get("ref") || searchParams.get("referral") || "").trim();
+  const paymentMethodParam = searchParams.get("paymentMethod");
 
   const initialEnrollments = useMemo((): SelectedEnrollments => {
     if (productParam === "individual") {
@@ -44,10 +47,21 @@ export function AcceleratorEnrollmentPage() {
   }, [planParam, productParam, billingParam]);
 
   const [selectedEnrollments, setSelectedEnrollments] = useState<SelectedEnrollments>(initialEnrollments);
+  const [paymentMethod, setPaymentMethod] = useState<EnrollmentPaymentMethod>(() => {
+    if (paymentMethodParam === "bank" || paymentMethodParam === "paypal" || paymentMethodParam === "card") {
+      return paymentMethodParam;
+    }
+    return "card";
+  });
 
   useEffect(() => {
     setSelectedEnrollments(initialEnrollments);
   }, [initialEnrollments]);
+  useEffect(() => {
+    if (paymentMethodParam === "bank" || paymentMethodParam === "paypal" || paymentMethodParam === "card") {
+      setPaymentMethod(paymentMethodParam);
+    }
+  }, [paymentMethodParam]);
   const [formData, setFormData] = useState<CheckoutFormData>(initialCheckoutFormData);
   const [submitting, setSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -63,6 +77,16 @@ export function AcceleratorEnrollmentPage() {
         setPaymentError("Select at least one enrollment with a valid total.");
         return;
       }
+      const pricing = getCheckoutPricing(payload.selectedEnrollments, payload.promoCode);
+      if (pricing.dueTodayTotal <= 0) {
+        setPaymentError("Order total must be greater than zero.");
+        return;
+      }
+
+      const referralForCheckout = resolveCheckoutReferralCode({
+        ref: searchParams.get("ref"),
+        referral: searchParams.get("referral"),
+      });
 
       const res = await fetch(apiUrl("/api/payments/three-step/init"), {
         method: "POST",
@@ -81,7 +105,9 @@ export function AcceleratorEnrollmentPage() {
             state: payload.formData.state,
             zip: payload.formData.postalCode,
           },
-          referralCode: referralCode || undefined,
+          referralCode: referralForCheckout || undefined,
+          promoCode: payload.promoCode || undefined,
+          paymentMethod: payload.paymentMethod,
           returnOrigin: window.location.origin,
         }),
       });
@@ -120,6 +146,11 @@ export function AcceleratorEnrollmentPage() {
               ? "Confirm Individual Core or Individual Plus, billing, and optional Business Core or Pro, then continue to secure card entry."
               : "Choose Business Core or Business Pro, then continue to secure card entry. Need individual only? Use the link in the plan section."}
           </p>
+          <div className="mt-3 grid gap-2 text-[11px] text-ori-muted sm:grid-cols-3">
+            <div className="rounded-md border border-ori-border bg-ori-surface/40 px-2 py-1.5">Step 1: Info</div>
+            <div className="rounded-md border border-ori-border bg-ori-surface/40 px-2 py-1.5">Step 2: Plan</div>
+            <div className="rounded-md border border-ori-border bg-ori-surface/40 px-2 py-1.5">Step 3: Payment</div>
+          </div>
         </PageContainer>
       </PageSection>
 
@@ -132,6 +163,8 @@ export function AcceleratorEnrollmentPage() {
               formData={formData}
               onFormChange={setFormData}
               onPay={handlePay}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
               submitting={submitting}
               paymentError={paymentError}
             />

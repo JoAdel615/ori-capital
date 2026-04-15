@@ -43,17 +43,30 @@ export function PricingTierCard({
         Includes
       </p>
       <ul className="mt-2 flex-1 space-y-2.5 text-sm text-ori-foreground">
-        {includes.map((item) => {
+        {includes.map((item, idx) => {
           const isPrefix =
             item.startsWith("Everything in") && (item.includes("plus") || item.includes("Plus"));
+          const segments = item.split("\n").map((s) => s.trim()).filter(Boolean);
+          const [lead, ...rest] = segments;
+          const detail = rest.join(" ");
+          const hasStackedLines = !isPrefix && segments.length > 1;
           return (
-            <li key={item} className={isPrefix ? "pb-1" : "flex items-start gap-2"}>
+            <li key={`${idx}-${lead}`} className={isPrefix ? "pb-1" : "flex items-start gap-2"}>
               {isPrefix ? (
                 <span className="font-semibold text-ori-accent">{item}</span>
               ) : (
                 <>
-                  <span className="text-ori-accent shrink-0">✓</span>
-                  {item}
+                  <span className="text-ori-accent shrink-0 pt-0.5">✓</span>
+                  {hasStackedLines ? (
+                    <span className="min-w-0">
+                      <span className="block font-semibold text-ori-foreground">{lead}</span>
+                      {detail ? (
+                        <span className="mt-0.5 block text-sm leading-relaxed text-ori-muted">{detail}</span>
+                      ) : null}
+                    </span>
+                  ) : (
+                    <span>{item}</span>
+                  )}
                 </>
               )}
             </li>

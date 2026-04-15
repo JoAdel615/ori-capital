@@ -262,3 +262,13 @@ export async function sendPartnerApprovalInvite(partnerId: string) {
     partner: PartnerRecord & { portalEnabled: boolean; invitePending: boolean };
   }>(`/api/backoffice/partners/${partnerId}/approval-invite`, { method: "POST", body: "{}" });
 }
+
+export async function generatePartnerClaimLink(partnerId: string) {
+  return authedFetch<{
+    ok: boolean;
+    claimUrl: string;
+    expiresAt?: string;
+    message: string;
+    partner: PartnerRecord & { portalEnabled: boolean; invitePending: boolean };
+  }>(`/api/backoffice/partners/${partnerId}/claim-link`, { method: "POST", body: "{}" });
+}

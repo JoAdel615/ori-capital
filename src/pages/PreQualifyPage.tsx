@@ -5,7 +5,9 @@ import { Accordion } from "../components/Accordion";
 import { PreQualifyForm } from "../components/PreQualifyForm";
 import { initialPreQualifyForm, type PreQualifyFormData } from "../data/preQualifyForm";
 import { config } from "../config";
+import { ORI_EVENTS, trackOriEvent } from "../lib/analytics/oriEvents";
 import { ROUTES } from "../utils/navigation";
+import { resolveCheckoutReferralCode } from "../lib/referral/attribution";
 
 const requirementItems = [
   {
@@ -65,7 +67,14 @@ const requirementItems = [
 
 export function PreQualifyPage() {
   const [searchParams] = useSearchParams();
-  const referralCode = useMemo(() => (searchParams.get("ref") || "").trim(), [searchParams]);
+  const referralCode = useMemo(
+    () =>
+      resolveCheckoutReferralCode({
+        ref: searchParams.get("ref"),
+        referral: searchParams.get("referral"),
+      }),
+    [searchParams]
+  );
   const [form, setForm] = useState<PreQualifyFormData>(initialPreQualifyForm);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -77,6 +86,7 @@ export function PreQualifyPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    trackOriEvent(ORI_EVENTS.APPLY_SUBMIT_ATTEMPT);
     setSubmitting(true);
     try {
       const res = await fetch(config.applyApiUrl, {
@@ -88,6 +98,7 @@ export function PreQualifyPage() {
         }),
       });
       if (!res.ok) throw new Error("Submission failed");
+      trackOriEvent(ORI_EVENTS.APPLY_SUBMIT_SUCCESS);
       setSubmitted(true);
     } catch {
       setError("We could not submit your request right now. Please try again in a moment.");
@@ -117,11 +128,27 @@ export function PreQualifyPage() {
   return (
     <div className="ori-container ori-section max-w-2xl mx-auto">
       <header className="mb-10 text-center">
-        <h1 className="mx-auto max-w-3xl font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl md:leading-tight">
-          Start with a quick intake so we can match your business to the right funding.
+        <p className="text-xs font-semibold uppercase tracking-widest text-ori-accent">Funding / Apply</p>
+        <h1 className="mx-auto mt-3 max-w-3xl font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl md:leading-tight">
+          Apply when funding is the right next move for your business
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm font-medium text-ori-muted">
-          This is a pre-qualification review—not a commitment or hard credit pull.
+          This intake helps us match you to appropriate funding paths. It is a pre-qualification review—not a commitment or hard credit pull.
+        </p>
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ori-muted">
+          Still setting up operations or structure? Start with{" "}
+          <Link to={ROUTES.MANAGEMENT} className="text-ori-accent hover:underline">
+            Management
+          </Link>{" "}
+          or{" "}
+          <Link to={ROUTES.GET_STARTED} className="text-ori-accent hover:underline">
+            Get started
+          </Link>
+          , or strengthen your profile via{" "}
+          <Link to={ROUTES.FUNDING_READINESS} className="text-ori-accent hover:underline">
+            Funding Readiness
+          </Link>{" "}
+          first.
         </p>
       </header>
 
@@ -140,9 +167,13 @@ export function PreQualifyPage() {
           If you are not ready yet, we will help clarify what to improve and how to move forward.
         </p>
         <p className="mt-1 text-center text-sm text-ori-muted">
-          Already know you want to apply?{" "}
+          Compare structures first:{" "}
           <Link to={ROUTES.FUNDING} className="text-ori-accent hover:underline">
-            View funding options
+            Explore funding options
+          </Link>{" "}
+          ·{" "}
+          <Link to={ROUTES.CAPITAL} className="text-ori-accent hover:underline">
+            Funding overview
           </Link>
         </p>
       </div>

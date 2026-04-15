@@ -5,6 +5,7 @@
  */
 
 import { computeOrderSummary, type SelectedEnrollments } from "../src/data/fundingReadinessPricing";
+import { getCheckoutPricing } from "../src/lib/checkoutPromotions";
 import type { BillingPayload } from "./ecryptCharge";
 
 export const ECRYPT_THREE_STEP_URL = "https://ecrypt.transactiongateway.com/api/v2/three-step";
@@ -116,6 +117,7 @@ export interface ThreeStepInitRequest {
   enrollments: SelectedEnrollments;
   billing: BillingPayload;
   redirectUrl: string;
+  promoCode?: string;
 }
 
 export interface ThreeStepInitResult {
@@ -144,6 +146,10 @@ export async function initThreeStepSale(
   if (summary.lines.length === 0 || summary.dueTodayTotal <= 0) {
     return { ok: false, error: "Invalid enrollment selection or amount" };
   }
+  const pricing = getCheckoutPricing(req.enrollments, req.promoCode);
+  if (pricing.dueTodayTotal <= 0) {
+    return { ok: false, error: "Order total must be greater than zero" };
+  }
 
   const b = req.billing;
   if (
@@ -159,7 +165,7 @@ export async function initThreeStepSale(
     return { ok: false, error: "Incomplete billing information" };
   }
 
-  const amount = formatAmount(summary.dueTodayTotal);
+  const amount = formatAmount(pricing.dueTodayTotal);
 
   // Billing fields must be nested under <billing>, not as direct children of <sale>
   // (see eCrypt Three-Step PHP sample: appendChild billing element with first-name, etc.).

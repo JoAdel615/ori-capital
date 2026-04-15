@@ -15,7 +15,7 @@ const STAT_INVESTORS = {
 } as const;
 
 interface GapSpectrumIllustrationProps {
-  /** When true, section is at least one viewport tall and content is vertically centered (v2 home). */
+  /** When true, section is at least one viewport tall and content is vertically centered. */
   fullViewport?: boolean;
 }
 

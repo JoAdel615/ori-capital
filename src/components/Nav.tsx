@@ -1,34 +1,54 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Drawer } from "./Drawer";
 import { LoginModal } from "./LoginModal";
-import { NavItem } from "./NavItem";
 import { NavMenuAction } from "./NavMenuAction";
 import { ThemeToggle } from "./ThemeToggle";
 import { ROUTES } from "../utils/navigation";
 
-const navItems = [
-  { to: ROUTES.HOME, label: "Home", description: "Overview of Ori and how funding works" },
-  {
-    to: ROUTES.APPLY,
-    label: "Apply for Funding",
-    description: "Start the funding application",
-  },
-  {
-    to: ROUTES.PARTNERS,
-    label: "Partner With Ori",
-    description: "For advisors, networks, and service providers",
-  },
-  { to: ROUTES.FUNDING_READINESS, label: "Funding Readiness", description: "Prepare your profile before applying" },
-  { to: ROUTES.INSIGHTS, label: "Insights", description: "Founder-first funding education" },
-  { to: ROUTES.ABOUT, label: "About", description: "The story and vision behind Ori" },
-  { to: ROUTES.CONTACT, label: "Contact", description: "Reach the team" },
-];
+const desktopNav = [
+  { to: ROUTES.CONSULTING, label: "Collaboration" },
+  { to: ROUTES.MANAGEMENT, label: "Management" },
+  { to: ROUTES.CAPITAL, label: "Funding" },
+  { to: ROUTES.PARTNERS, label: "Partners" },
+] as const;
+
+const managementProductLinks = [
+  { to: ROUTES.MANAGEMENT_FORMATION, label: "Formation & Compliance" },
+  { to: ROUTES.MANAGEMENT_BUSINESS_PROFILE, label: "Ori Vault" },
+  { to: ROUTES.MANAGEMENT_BUSINESS_BUILDER, label: "Business Builder" },
+  { to: ROUTES.MANAGEMENT_HOSTING, label: "Web & Email" },
+  { to: ROUTES.MANAGEMENT_CRM_GROWTH, label: "CRM & Growth" },
+] as const;
+
+const collaborationProductLinks = [
+  { to: ROUTES.CONSULTING_COACHING, label: "Startup Coaching" },
+  { to: ROUTES.CONSULTING_PRODUCT_DEVELOPMENT, label: "Product development" },
+  { to: ROUTES.CONSULTING_STRUCTURING, label: "Management Advisory" },
+  { to: ROUTES.CONSULTING_CAPITAL_STRATEGY, label: "Funding Strategy" },
+  { to: ROUTES.CONSULTING_BOOK, label: "Book session" },
+] as const;
+
+function drawerExploreClass({ isActive }: { isActive: boolean }) {
+  return `block rounded-lg px-3 py-2.5 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-charcoal ${
+    isActive ? "border-l-2 border-ori-accent bg-ori-surface pl-[10px] text-ori-accent" : "border-l-2 border-transparent text-ori-foreground hover:bg-ori-surface"
+  }`;
+}
+
+function drawerProductClass({ isActive }: { isActive: boolean }) {
+  return `block rounded-md px-2 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-charcoal ${
+    isActive ? "border-l-2 border-ori-accent bg-ori-surface pl-[6px] font-medium text-ori-accent" : "border-l-2 border-transparent text-ori-muted hover:bg-ori-surface hover:text-ori-foreground"
+  }`;
+}
 
 export function Nav() {
+  const location = useLocation();
+  const partnerPortalChrome =
+    location.pathname === ROUTES.PARTNER_PORTAL || location.pathname.startsWith(`${ROUTES.PARTNER_PORTAL}/`);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const closeDrawer = () => setDrawerOpen(false);
+
   const openLogin = () => {
     closeDrawer();
     setLoginOpen(true);
@@ -36,23 +56,42 @@ export function Nav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-ori-border bg-ori-black/90 backdrop-blur-md">
-      <nav className="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-4 py-4 pr-6 sm:px-6 sm:pr-8 lg:px-8 lg:pr-12" aria-label="Main navigation">
-        <Link to="/" className="flex items-center gap-3 font-display text-xl font-bold text-ori-foreground shrink-0">
-          <img src="/ori-crown-logo.png" alt="Ori Capital" className="h-8 w-8 object-contain" />
-          <span>Ori Capital</span>
+      <nav
+        className="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-4 py-4 pr-6 sm:px-6 sm:pr-8 lg:px-8 lg:pr-12"
+        aria-label="Main navigation"
+      >
+        <Link to={ROUTES.HOME} className="flex shrink-0 items-center gap-3 font-display text-xl font-bold text-ori-foreground">
+          <img src="/ori-crown-logo.png" alt="" className="h-8 w-8 object-contain" width={32} height={32} />
+          <span>Ori Holdings</span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
-          <Link
-            to={ROUTES.APPLY}
-            className="hidden rounded-xl bg-ori-accent px-5 py-2.5 text-sm font-semibold text-ori-black hover:bg-ori-accent-dim md:inline-block shrink-0"
-          >
-            Apply for Funding
-          </Link>
+        {!partnerPortalChrome ? (
+          <div className="hidden items-center gap-5 lg:flex">
+            {desktopNav.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="text-sm font-semibold text-ori-foreground transition-colors hover:text-ori-accent"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
+          {!partnerPortalChrome ? (
+            <Link
+              to={ROUTES.GET_STARTED}
+              className="hidden shrink-0 rounded-xl bg-ori-accent px-5 py-2.5 text-sm font-semibold text-ori-black hover:bg-ori-accent-dim md:inline-block"
+            >
+              Get Started
+            </Link>
+          ) : null}
           <ThemeToggle />
           <button
             type="button"
-            className="rounded-lg p-2.5 shrink-0 text-ori-foreground hover:bg-ori-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent"
+            className="shrink-0 rounded-lg p-2.5 text-ori-foreground hover:bg-ori-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent"
             aria-expanded={drawerOpen}
             aria-controls="nav-drawer"
             aria-label={drawerOpen ? "Close menu" : "Open menu"}
@@ -72,7 +111,7 @@ export function Nav() {
       </nav>
 
       <Drawer open={drawerOpen} onClose={closeDrawer} variant="full" id="nav-drawer">
-        <div className="flex flex-col h-full overflow-y-auto">
+        <div className="flex h-full flex-col overflow-y-auto">
           <div className="flex items-center justify-between gap-2 border-b border-ori-border p-4">
             <span className="font-display text-lg font-bold text-ori-foreground">Menu</span>
             <div className="flex items-center gap-1">
@@ -89,22 +128,63 @@ export function Nav() {
               </button>
             </div>
           </div>
-          <ul className="flex-1 space-y-1 px-4 py-4 pb-8">
-            {navItems.map((item) => (
-              <NavItem
-                key={item.to}
-                to={item.to}
-                label={item.label}
-                description={item.description}
+          <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4 pb-8">
+            <section aria-label="Primary destinations">
+              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-ori-muted">Explore</p>
+              <ul className="space-y-1">
+                {desktopNav.map((item) => (
+                  <li key={item.to}>
+                    <NavLink to={item.to} className={drawerExploreClass} onClick={closeDrawer}>
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+              <NavLink
+                to={ROUTES.GET_STARTED}
+                className="mt-3 block rounded-lg bg-ori-accent px-3 py-2.5 text-center text-sm font-semibold text-ori-black transition-colors hover:bg-ori-accent-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-charcoal md:hidden"
                 onClick={closeDrawer}
-              />
-            ))}
-            <NavMenuAction
-              label="Login"
-              description="Partner portal or admin"
-              onClick={openLogin}
-            />
-          </ul>
+              >
+                Get Started
+              </NavLink>
+            </section>
+
+            <section aria-label="Product pages">
+              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-ori-muted">Products</p>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <p className="mb-1.5 px-1 text-[0.625rem] font-semibold uppercase tracking-wider text-ori-muted/90">
+                    Management
+                  </p>
+                  <ul className="space-y-0.5">
+                    {managementProductLinks.map((item) => (
+                      <li key={item.to}>
+                        <NavLink to={item.to} className={drawerProductClass} onClick={closeDrawer}>
+                          {item.label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="mb-1.5 px-1 text-[0.625rem] font-semibold uppercase tracking-wider text-ori-muted/90">
+                    Collaboration
+                  </p>
+                  <ul className="space-y-0.5">
+                    {collaborationProductLinks.map((item) => (
+                      <li key={item.to}>
+                        <NavLink to={item.to} className={drawerProductClass} onClick={closeDrawer}>
+                          {item.label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <NavMenuAction label="Login" description="Partner portal or admin" onClick={openLogin} />
+          </div>
         </div>
       </Drawer>
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />

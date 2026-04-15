@@ -57,18 +57,15 @@ export const PLANS: PlanConfig[] = [
     },
     features: {
       business: [
-        "See exactly where your business stands for funding",
-        "Set up your business the right way for lenders and credit",
-        "Get your business visible to credit bureaus",
-        "Build business credit step-by-step",
-        "Add the right accounts and tradelines to strengthen your profile",
-        "Know what lenders are looking for and how to meet it",
-        "Follow a clear plan to move toward approval",
+        "Understand where you stand\nSee how lenders evaluate your business",
+        "Build a fundable foundation\nSet up structure and core signals the right way",
+        "Establish credit visibility\nGet your business recognized by reporting agencies",
+        "Strengthen your profile over time\nAdd activity that improves credibility and approval odds",
+        "Follow a clear path to funding\nKnow what to do, and in what order, before applying",
       ],
     },
     descriptor: {
-      business:
-        "Designed for businesses that need the right foundation, stronger credibility, and a clearer path to capital.",
+      business: "For businesses preparing before applying, not after a denial.",
     },
   },
   {
@@ -95,21 +92,19 @@ export const PLANS: PlanConfig[] = [
     },
     features: {
       business: [
-        "Everything in Business Core, plus advanced support:",
-        "1:1 support to guide your funding strategy",
-        "A personalized plan based on your business and goals",
-        "Help positioning your business for approvals",
-        "Review and improve your credit, cash flow, and overall profile",
-        "Know exactly when and how to apply for funding",
-        "Support during your next funding attempt",
+        "Everything in Core, plus strategic support",
+        "Work directly with an expert\nGet 1:1 guidance on positioning and timing",
+        "Go deeper into your profile\nReview credit, financials, and readiness factors",
+        "Focus on what actually matters\nPrioritize actions that impact approval",
+        "Apply with a clear strategy\nKnow when, where, and how to pursue funding",
+        "Support through your application\nStay aligned as you move toward approval",
       ],
     },
     featuresPrefix: {
-      business: "Everything in Business Core, plus advanced support:",
+      business: "Everything in Core, plus strategic support",
     },
     descriptor: {
-      business:
-        "Designed for businesses that want deeper strategic guidance, stronger funding positioning, and more hands-on support.",
+      business: "For businesses that want strategy, not guesswork.",
     },
   },
 ];
@@ -163,28 +158,28 @@ export const INDIVIDUAL_READINESS_STANDALONE_PRO_PRICING = INDIVIDUAL_READINESS_
 
 /** Marketing / card copy for standalone Individual Core. */
 export const INDIVIDUAL_READINESS_STANDALONE_FEATURES: string[] = [
-  "Clarify how your personal credit affects funding eligibility",
-  "Roadmap to strengthen utilization, history, and profile signals",
-  "Align personal credit behavior with what lenders review",
-  "Step-by-step support focused on individual readiness—not business entity work",
-  "Check-ins so you know what to do next before you apply",
+  "Understand how your profile impacts funding and approval potential",
+  "See how capital providers evaluate your personal credit and what is limiting your options",
+  "Fix the factors that matter, including utilization, history, and key profile signals",
+  "Build a funding-ready foundation before you apply",
+  "Follow a clear step-by-step plan so you know exactly what to do next",
 ];
 
 export const INDIVIDUAL_READINESS_STANDALONE_DESCRIPTOR =
-  "Funding readiness for your personal credit profile—without the business accelerator.";
+  "For individuals preparing their personal profile before pursuing funding.";
 
 /** Individual Plus — extra support layer. */
 export const INDIVIDUAL_READINESS_STANDALONE_PLUS_FEATURES: string[] = [
   "Everything in Individual Core, plus:",
-  "1:1 guidance on personal credit and funding positioning",
-  "A tailored plan for your goals and timeline",
-  "Deeper review of utilization, inquiries, and profile signals",
-  "Help prioritizing what to fix before you apply",
-  "Support through your next funding or credit milestone",
+  "Work directly with an expert on your profile, positioning, and funding approach",
+  "Go deeper into utilization, inquiries, and risk signals across your profile",
+  "Prioritize the actions that can actually improve funding outcomes",
+  "Receive a tailored plan based on your goals and timeline",
+  "Stay supported through your next step toward applying",
 ];
 
 export const INDIVIDUAL_READINESS_STANDALONE_PLUS_DESCRIPTOR =
-  "For applicants who want hands-on support and strategic depth on individual funding readiness.";
+  "For individuals who want expert support and a deeper strategy.";
 
 /** @deprecated Use INDIVIDUAL_READINESS_STANDALONE_PLUS_FEATURES */
 export const INDIVIDUAL_READINESS_STANDALONE_PRO_FEATURES = INDIVIDUAL_READINESS_STANDALONE_PLUS_FEATURES;

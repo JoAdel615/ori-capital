@@ -12,8 +12,7 @@ import { submitAssessment } from "../api/readiness";
 import type { ReadinessResult } from "../lib/readiness/types";
 import { saveLastReadinessSurveySnapshot } from "../data/contactSubmissions";
 import {
-  getStoredReferralCode,
-  normalizeReferralCode,
+  resolveCheckoutReferralCode,
   pathWithRef,
   persistReferralCode,
   externalUrlWithRef,
@@ -48,11 +47,14 @@ function getRecommendationCopy(score: number): { headline: string; supporting: s
 
 export function FundingReadinessSurveyPage() {
   const [searchParams] = useSearchParams();
-  const referralRef = useMemo(() => {
-    const q = normalizeReferralCode(searchParams.get("ref"));
-    if (q) return q;
-    return getStoredReferralCode();
-  }, [searchParams]);
+  const referralRef = useMemo(
+    () =>
+      resolveCheckoutReferralCode({
+        ref: searchParams.get("ref"),
+        referral: searchParams.get("referral"),
+      }),
+    [searchParams]
+  );
 
   useEffect(() => {
     if (referralRef) persistReferralCode(referralRef);

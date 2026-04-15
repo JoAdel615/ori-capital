@@ -23,3 +23,20 @@ export function partnerRegisterInviteUrl(inviteUrlFromServer: string): string {
 export async function copyPartnerRegisterInviteLink(inviteUrlFromServer: string): Promise<void> {
   await navigator.clipboard.writeText(partnerRegisterInviteUrl(inviteUrlFromServer));
 }
+
+export function partnerClaimUrl(claimUrlFromServer: string): string {
+  try {
+    const u = new URL(claimUrlFromServer, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+    const token = u.searchParams.get("claim");
+    if (token && typeof window !== "undefined") {
+      return `${window.location.origin}${ROUTES.PARTNER}?claim=${encodeURIComponent(token)}`;
+    }
+  } catch {
+    /* use server URL */
+  }
+  return claimUrlFromServer;
+}
+
+export async function copyPartnerClaimLink(claimUrlFromServer: string): Promise<void> {
+  await navigator.clipboard.writeText(partnerClaimUrl(claimUrlFromServer));
+}

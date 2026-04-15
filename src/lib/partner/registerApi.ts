@@ -32,6 +32,8 @@ export async function registerPartnerSelfService(payload: {
   contactName: string;
   email: string;
   phone?: string;
+  city?: string;
+  state?: string;
   partnerIntake: PartnerIntakePayload;
   /** Anti-spam honeypot — must be empty */
   partnerHoneypot?: string;
@@ -58,6 +60,8 @@ export async function completePartnerInvite(payload: {
   contactName: string;
   email: string;
   phone: string;
+  city?: string;
+  state?: string;
   partnerIntake: PartnerIntakePayload;
   /** Anti-spam honeypot — must be empty */
   partnerHoneypot?: string;

@@ -142,11 +142,12 @@ export function FundingSpectrum({ fullViewport = false }: FundingSpectrumProps) 
             id="funding-spectrum-heading"
             className="font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl"
           >
-            Funding the gap
+            Most businesses fall into the funding gap
           </h2>
           <p className="mx-auto mt-5 max-w-[680px] text-lg leading-relaxed text-ori-muted">
-            Traditional banks weren&apos;t built for modern founders. Venture capital isn&apos;t right for every
-            business. Explore how options shift from lending and control toward investment and growth.
+            Traditional lenders prioritize stability. Investors prioritize scale. Most businesses fall somewhere in
+            between—too early for one, not a fit for the other. That&apos;s where deals stall, and where strategy
+            matters.
           </p>
         </header>
 

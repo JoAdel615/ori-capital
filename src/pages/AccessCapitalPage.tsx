@@ -1,8 +1,54 @@
+import { Link } from "react-router-dom";
 import { Button } from "../components/Button";
 import { Accordion } from "../components/Accordion";
+import { FaqJsonLd } from "../components/FaqJsonLd";
 import { PageHero, PageSection } from "../components/system";
 import { TrustSectionIntro } from "../components/trust/TrustElements";
 import { ROUTES } from "../utils/navigation";
+
+
+const faqSchemaItems = [
+  {
+    question: "Will this hurt my credit?",
+    answer:
+      "Our pre-qualification uses a soft inquiry, which does not affect your credit score. If you move forward with a formal application, some lenders may perform a hard pull.",
+  },
+  {
+    question: "Do I need revenue to qualify?",
+    answer:
+      "It depends on the product. Traditional term loans and lines of credit often require revenue. We also source founder-focused and early-stage options for businesses that are not revenue-ready yet.",
+  },
+  {
+    question: "Can startups qualify?",
+    answer:
+      "Yes. We work with startups and small businesses in the space between traditional banks and venture capital. Pre-revenue or early-revenue companies may qualify for specific products designed for their stage.",
+  },
+  {
+    question: "How fast is the process really?",
+    answer:
+      "Pre-qualification decisions can be delivered in as little as 48 hours. Full applications and funding disbursement depend on the product and lender.",
+  },
+  {
+    question: "What if I have been denied before?",
+    answer:
+      "A prior denial does not disqualify you. We evaluate your current profile and match options that fit. If needed, Funding Readiness can help strengthen your profile first.",
+  },
+  {
+    question: "Is this a loan application?",
+    answer:
+      "No. Pre-qualification is a first step to see what you may qualify for, with no obligation.",
+  },
+  {
+    question: "What documents might you ask for later?",
+    answer:
+      "Depending on the product, we may request bank statements, tax returns, business formation documents, or proof of revenue.",
+  },
+  {
+    question: "What happens after I pre-qualify?",
+    answer:
+      "If you meet requirements, we schedule a consultation to review options, terms, and next steps. If not ready, we provide a path to improve and return stronger.",
+  },
+];
 
 const faqItems = [
   {
@@ -146,8 +192,22 @@ export function AccessCapitalPage() {
     <>
       <PageHero
         size="inner"
+        eyebrow="Funding"
         title="Explore funding options built for how your business actually operates"
         subtitle="Different businesses need different forms of capital. We help you understand the options, the tradeoffs, and where your business may fit best."
+        body={
+          <p className="mt-4 text-base text-ori-muted">
+            Funding works best after formation, profile, and operations are credible. If you are earlier in the lifecycle, start with{" "}
+            <Link to={ROUTES.MANAGEMENT} className="text-ori-accent hover:underline">
+              Management
+            </Link>{" "}
+            or{" "}
+            <Link to={ROUTES.CONSULTING} className="text-ori-accent hover:underline">
+              Consulting
+            </Link>
+            —then return here when financing is the right lever.
+          </p>
+        }
         align="center"
         className="border-b border-ori-border bg-ori-section-alt"
       />
@@ -216,6 +276,8 @@ export function AccessCapitalPage() {
         <TrustSectionIntro title="Frequently asked questions" />
         <Accordion items={faqItems} />
       </PageSection>
+
+      <FaqJsonLd faqs={faqSchemaItems} />
     </>
   );
 }

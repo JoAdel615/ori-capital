@@ -8,7 +8,7 @@ import { createPortal } from "react-dom";
 import { AcceleratorEnrollmentForm } from "./AcceleratorEnrollmentForm";
 import { AcceleratorEnrollmentConfirmation } from "./AcceleratorEnrollmentConfirmation";
 import { initialCheckoutFormData } from "./AcceleratorEnrollmentForm";
-import type { AcceleratorPayPayload, CheckoutFormData } from "./AcceleratorEnrollmentForm";
+import type { AcceleratorPayPayload, CheckoutFormData, EnrollmentPaymentMethod } from "./AcceleratorEnrollmentForm";
 import type { SelectedEnrollments } from "../../data/fundingReadinessPricing";
 
 const MODAL_OVERLAY_Z = 9998;
@@ -42,8 +42,10 @@ export function AcceleratorEnrollmentModal({
   useEffect(() => {
     if (!open) return;
     setSelectedEnrollments(initialEnrollments);
+    setPaymentMethod("card");
   }, [open, initialEnrollments]);
   const [formData, setFormData] = useState<CheckoutFormData>(initialCheckoutFormData);
+  const [paymentMethod, setPaymentMethod] = useState<EnrollmentPaymentMethod>("card");
 
   useEffect(() => {
     if (!open) return;
@@ -114,6 +116,8 @@ export function AcceleratorEnrollmentModal({
                   formData={formData}
                   onFormChange={setFormData}
                   onPay={onPay}
+                  paymentMethod={paymentMethod}
+                  onPaymentMethodChange={setPaymentMethod}
                   submitting={submitting}
                   paymentError={paymentError}
                 />

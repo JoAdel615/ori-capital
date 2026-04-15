@@ -1,64 +1,96 @@
+import type { LucideIcon } from "lucide-react";
+import { Building2, ClipboardCheck, ListTree, Map } from "lucide-react";
 import { PageSection, SectionHeading } from "../system";
 
-const steps: {
-  title: string;
-  copy: string;
-  image: string;
-  imageAlt: string;
-}[] = [
+const steps: { title: string; copy: string; Icon: LucideIcon }[] = [
   {
-    title: "Understand Your Position",
-    copy: "We assess where you are and what may affect your path forward.",
-    image:
-      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80&auto=format&fit=crop",
-    imageAlt: "Reviewing business documents and strategy",
+    title: "Assess your current profile",
+    copy: "We review your personal and business credit, structure, and key data points to understand where you stand today.",
+    Icon: ClipboardCheck,
   },
   {
-    title: "Map Your Options",
-    copy: "We help identify the most realistic next steps based on your business and goals.",
-    image:
-      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80&auto=format&fit=crop",
-    imageAlt: "Planning next steps together",
+    title: "Identify gaps and priorities",
+    copy: "We break down what's missing or misaligned and prioritize the areas that need to be addressed first.",
+    Icon: ListTree,
   },
   {
-    title: "Help You Move Forward",
-    copy:
-      "Whether that means applying now or strengthening your position first, we help you take the next step with more clarity.",
-    image:
-      "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80&auto=format&fit=crop",
-    imageAlt: "Partners moving forward with a plan",
+    title: "Build and strengthen your profile",
+    copy: "You work through the steps to improve your credit, structure your business properly, and align with funding requirements.",
+    Icon: Building2,
+  },
+  {
+    title: "Move forward with a plan",
+    copy: "Once your profile is in place, you move forward with a clear approach to applying for funding.",
+    Icon: Map,
   },
 ];
 
 export function ReferralHowOriSupports() {
   return (
-    <PageSection variant="loose" className="section-divider flex min-h-screen min-h-dvh flex-col justify-center bg-ori-black">
-      <SectionHeading title="How Ori Supports You" />
-      <ol className="mx-auto grid w-full max-w-7xl gap-6 md:grid-cols-3 md:gap-8">
-        {steps.map((step, i) => (
-          <li
-            key={step.title}
-            className="flex flex-col overflow-hidden rounded-2xl border border-ori-border bg-ori-surface/90 text-center md:text-left shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]"
-          >
-            <div className="relative h-40 overflow-hidden bg-ori-charcoal sm:h-44 md:min-h-[11rem]">
-              <img
-                src={step.image}
-                alt={step.imageAlt}
-                className="h-full w-full object-cover opacity-95"
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ori-black/85 via-ori-black/15 to-transparent" />
-              <span className="absolute bottom-3 left-1/2 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-ori-border/80 bg-ori-black/60 font-display text-lg font-bold text-ori-accent backdrop-blur-sm md:left-6 md:translate-x-0">
-                {i + 1}
-              </span>
-            </div>
-            <div className="p-6">
-              <h3 className="font-display text-lg font-semibold text-ori-foreground">{step.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ori-muted">{step.copy}</p>
-            </div>
-          </li>
-        ))}
+    <PageSection
+      variant="loose"
+      className="border-b border-ori-border bg-ori-section-alt ori-pillar-band-management section-divider"
+      aria-labelledby="referral-how-heading"
+    >
+      <div className="grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-12">
+        <div className="lg:col-span-5">
+          <SectionHeading
+            id="referral-how-heading"
+            align="left"
+            title="The process"
+            subtitle="A structured approach to prepare you and your business for funding, without guesswork or unnecessary steps."
+            subtitleClassName="max-w-xl text-pretty ori-type-body-muted"
+            className="!mb-0"
+          />
+        </div>
+        <div className="hidden lg:col-span-7 lg:block">
+          <ol className="flex gap-0" aria-hidden>
+            {steps.map((_, i) => (
+              <li key={i} className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ori-accent/35 bg-ori-accent/10 text-xs font-semibold text-ori-accent">
+                  {i + 1}
+                </span>
+                {i < steps.length - 1 ? (
+                  <span className="h-px min-w-[1rem] flex-1 bg-gradient-to-r from-ori-accent/40 via-ori-border to-ori-border xl:min-w-[2rem]" />
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+
+      <ol className="mt-12 grid gap-6 md:mt-14 md:gap-7 lg:mt-16 lg:grid-cols-4 lg:gap-0">
+        {steps.map((step, i) => {
+          const Icon = step.Icon;
+          return (
+            <li
+              key={step.title}
+              className={`lg:px-4 xl:px-5 motion-safe:lg:odd:translate-y-3 motion-safe:lg:even:translate-y-0 ${
+                i > 0 ? "lg:border-l lg:border-ori-border/60" : ""
+              }`}
+            >
+              <div className="h-full rounded-2xl border border-ori-border bg-ori-surface-panel/70 p-6 shadow-sm ring-1 ring-white/[0.04] md:p-7">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ori-accent/35 bg-ori-accent/10 text-xs font-bold text-ori-accent">
+                    {i + 1}
+                  </span>
+                  <div
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-ori-accent/25 bg-ori-accent/[0.08]"
+                    aria-hidden
+                  >
+                    <Icon className="h-7 w-7 text-ori-accent" strokeWidth={1.5} />
+                  </div>
+                </div>
+                <h3 className="mt-6 font-display text-base font-semibold tracking-tight text-ori-foreground lg:text-lg">
+                  {step.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-ori-muted lg:text-[0.8125rem] lg:leading-relaxed xl:text-[0.9375rem]">
+                  {step.copy}
+                </p>
+              </div>
+            </li>
+          );
+        })}
       </ol>
     </PageSection>
   );

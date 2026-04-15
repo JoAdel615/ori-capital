@@ -1,10 +1,11 @@
+import type { ReactNode } from "react";
 import { CheckCircle2, ChevronRight, type LucideIcon, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type IntroProps = {
   eyebrow?: string;
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   align?: "left" | "center";
 };
 
@@ -19,7 +20,11 @@ export function TrustSectionIntro({ eyebrow, title, subtitle, align = "left" }: 
       <h2 className={`font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl ${eyebrow ? "mt-2" : ""}`}>
         {title}
       </h2>
-      {subtitle ? <p className="mt-4 text-base leading-relaxed text-ori-muted md:text-lg">{subtitle}</p> : null}
+      {subtitle ? (
+        <div className="mt-4 space-y-3 text-base leading-relaxed text-ori-muted md:text-lg">
+          {typeof subtitle === "string" ? <p>{subtitle}</p> : subtitle}
+        </div>
+      ) : null}
     </header>
   );
 }
@@ -73,19 +78,26 @@ export type CriteriaItem = {
   icon: LucideIcon;
   image: string;
   imageAlt: string;
+  /** When set, the whole card links (e.g. module landing routes). */
+  to?: string;
+  /** Shown at bottom when `to` is set; defaults to “Explore module”. */
+  ctaLabel?: string;
 };
 
-export function CriteriaGrid({ items }: { items: CriteriaItem[] }) {
+export function CriteriaGrid({ items, fourColumnRow }: { items: CriteriaItem[]; fourColumnRow?: boolean }) {
+  const gridClass = fourColumnRow
+    ? "grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+    : "grid gap-5 sm:grid-cols-2 lg:grid-cols-4";
+
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <div className={gridClass}>
       {items.map((item) => {
         const Icon = item.icon;
-        return (
-          <article
-            key={item.title}
-            className="flex flex-col overflow-hidden rounded-2xl border border-ori-border bg-ori-surface/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all duration-200 hover:-translate-y-1 hover:border-ori-accent/35"
-          >
-            <div className="relative h-32 overflow-hidden bg-ori-charcoal sm:h-36">
+        const cta = item.ctaLabel ?? "Explore module";
+        const descParts = item.description.split(/\n\n/).filter(Boolean);
+        const body = (
+          <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-ori-border bg-ori-surface/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all duration-200 hover:-translate-y-1 hover:border-ori-accent/35">
+            <div className="relative h-36 overflow-hidden bg-ori-charcoal sm:h-40">
               <img
                 src={item.image}
                 alt={item.imageAlt}
@@ -100,9 +112,32 @@ export function CriteriaGrid({ items }: { items: CriteriaItem[] }) {
             </div>
             <div className="flex flex-1 flex-col p-5 md:p-6">
               <h3 className="font-display text-lg font-semibold text-ori-foreground">{item.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-ori-muted">{item.description}</p>
+              <div className="mt-3 space-y-2 text-sm leading-relaxed text-ori-muted">
+                {descParts.map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
+              </div>
+              {item.to ? (
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-ori-accent">
+                  {cta}
+                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                </span>
+              ) : null}
             </div>
           </article>
+        );
+        return item.to ? (
+          <Link
+            key={item.title}
+            to={item.to}
+            className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-black"
+          >
+            {body}
+          </Link>
+        ) : (
+          <div key={item.title} className="h-full">
+            {body}
+          </div>
         );
       })}
     </div>

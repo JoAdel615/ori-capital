@@ -8,6 +8,7 @@ import { ECRYPT_SANDBOX_TEST_CARD } from "../lib/ecrypt/sandboxTestData";
 interface SessionResponse {
   ok: boolean;
   formUrl?: string;
+  paymentMethod?: "card" | "bank" | "paypal";
   error?: string;
 }
 
@@ -17,6 +18,7 @@ export function AcceleratorThreeStepEntryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formUrl, setFormUrl] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank" | "paypal">("card");
 
   useEffect(() => {
     let cancelled = false;
@@ -39,6 +41,9 @@ export function AcceleratorThreeStepEntryPage() {
         }
         if (!cancelled) {
           setFormUrl(data.formUrl);
+          if (data.paymentMethod === "bank" || data.paymentMethod === "paypal" || data.paymentMethod === "card") {
+            setPaymentMethod(data.paymentMethod);
+          }
           setLoading(false);
         }
       } catch {
@@ -60,10 +65,14 @@ export function AcceleratorThreeStepEntryPage() {
       <PageSection variant="tight" className="border-b border-ori-border bg-ori-section-alt">
         <PageContainer>
           <h1 className="font-display text-xl font-bold tracking-tight text-ori-foreground md:text-2xl">
-            Secure Card Entry
+            {paymentMethod === "card"
+              ? "Secure Card Entry"
+              : paymentMethod === "bank"
+                ? "Secure Bank Entry"
+                : "Secure PayPal Entry"}
           </h1>
           <p className="mt-2 text-sm text-ori-muted">
-            Step 2 of 3. Card details are submitted directly to the gateway.
+            Step 2 of 3. Payment details are submitted directly to the gateway.
           </p>
         </PageContainer>
       </PageSection>
@@ -83,7 +92,7 @@ export function AcceleratorThreeStepEntryPage() {
               </div>
             )}
 
-            {!loading && !error && formUrl && (
+            {!loading && !error && formUrl && paymentMethod === "card" && (
               <form action={formUrl} method="POST" className="space-y-4">
                 {import.meta.env.DEV && (
                   <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
@@ -127,6 +136,93 @@ export function AcceleratorThreeStepEntryPage() {
                   className="inline-flex items-center justify-center rounded-lg bg-ori-accent px-6 py-3 text-sm font-semibold text-ori-black hover:bg-ori-accent-dim"
                 >
                   Submit secure payment details
+                </button>
+              </form>
+            )}
+
+            {!loading && !error && formUrl && paymentMethod === "bank" && (
+              <form action={formUrl} method="POST" className="space-y-4">
+                <input type="hidden" name="payment" value="check" />
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-ori-foreground">Account Holder Name</label>
+                  <input
+                    name="checkname"
+                    autoComplete="name"
+                    className="w-full rounded-lg border border-ori-border bg-ori-charcoal px-3 py-2 text-sm text-ori-foreground"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-ori-foreground">Routing Number</label>
+                    <input
+                      name="checkaba"
+                      inputMode="numeric"
+                      className="w-full rounded-lg border border-ori-border bg-ori-charcoal px-3 py-2 text-sm text-ori-foreground"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-ori-foreground">Account Number</label>
+                    <input
+                      name="checkaccount"
+                      inputMode="numeric"
+                      className="w-full rounded-lg border border-ori-border bg-ori-charcoal px-3 py-2 text-sm text-ori-foreground"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-ori-foreground">Account Type</label>
+                    <select
+                      name="account_type"
+                      className="w-full rounded-lg border border-ori-border bg-ori-charcoal px-3 py-2 text-sm text-ori-foreground"
+                      defaultValue="checking"
+                    >
+                      <option value="checking">Checking</option>
+                      <option value="savings">Savings</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-ori-foreground">Holder Type</label>
+                    <select
+                      name="account_holder_type"
+                      className="w-full rounded-lg border border-ori-border bg-ori-charcoal px-3 py-2 text-sm text-ori-foreground"
+                      defaultValue="personal"
+                    >
+                      <option value="personal">Personal</option>
+                      <option value="business">Business</option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-lg bg-ori-accent px-6 py-3 text-sm font-semibold text-ori-black hover:bg-ori-accent-dim"
+                >
+                  Submit secure bank details
+                </button>
+              </form>
+            )}
+
+            {!loading && !error && formUrl && paymentMethod === "paypal" && (
+              <form action={formUrl} method="POST" className="space-y-4">
+                <input type="hidden" name="payment" value="paypal" />
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-ori-foreground">PayPal Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    className="w-full rounded-lg border border-ori-border bg-ori-charcoal px-3 py-2 text-sm text-ori-foreground"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-lg bg-ori-accent px-6 py-3 text-sm font-semibold text-ori-black hover:bg-ori-accent-dim"
+                >
+                  Continue with PayPal
                 </button>
               </form>
             )}

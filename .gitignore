@@ -19,6 +19,9 @@ test-results/
 *.zip
 public/videos/professional-10-minute-vsl.mp4
 
+# Generated UI screenshots (see screenshots/README.md; use npm run screenshots)
+screenshots/*.png
+
 # Local dev data (back office JSON may contain PII; never commit)
 .data/
 vault/

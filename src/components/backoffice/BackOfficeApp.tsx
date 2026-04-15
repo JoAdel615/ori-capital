@@ -22,7 +22,6 @@ import {
   patchOpportunity,
   patchSubscription,
   patchTestimonial,
-  revokePartnerPortal,
   sendTestimonialRequest,
   sendPartnerInvite,
   sendPartnerApprovalInvite,
@@ -1171,7 +1170,7 @@ function PartnersSection({
                             )}
                           </div>
                           <div className="rounded-lg border border-ori-border bg-ori-charcoal/50 p-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-ori-muted">Portal key</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-ori-muted">Access key</p>
                             {lastPortalKeys[p.id] ? (
                               <>
                                 <p className="mt-1 font-mono text-xs break-all text-ori-foreground">{lastPortalKeys[p.id]}</p>
@@ -1182,13 +1181,13 @@ function PartnersSection({
                                   className="mt-2"
                                   onClick={() => void navigator.clipboard.writeText(lastPortalKeys[p.id]!)}
                                 >
-                                  Copy portal key
+                                  Copy access key
                                 </Button>
                               </>
                             ) : (
                               <p className="mt-1 text-[11px] text-ori-muted leading-relaxed">
                                 Not stored in this browser. Use <span className="text-ori-foreground">Send approval &amp; key</span>{" "}
-                                or <span className="text-ori-foreground">Issue portal key</span> and copy the value when it is
+                                or <span className="text-ori-foreground">Generate access key</span> and copy the value when it is
                                 shown once.
                               </p>
                             )}
@@ -1360,18 +1359,18 @@ function PartnersSection({
                               setPartnerNotice({
                                 partnerId: p.id,
                                 variant: "ok",
-                                message: `${r.message} Key is shown below — copy it now.`,
+                                message: `${r.message} Access key is shown below — copy it now.`,
                               });
                             } catch {
                               setPartnerNotice({
                                 partnerId: p.id,
                                 variant: "err",
-                                message: "Could not issue a portal key.",
+                                message: "Could not generate access key.",
                               });
                             }
                           }}
                         >
-                          {p.portalEnabled ? "Regenerate portal key" : "Issue portal key"}
+                          {p.portalEnabled ? "Regenerate access key" : "Generate access key"}
                         </Button>
                         <Button
                           type="button"
@@ -1379,16 +1378,44 @@ function PartnersSection({
                           size="sm"
                           className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
                           onClick={async () => {
-                            if (!window.confirm("Revoke portal access? Partner must get a new key to sign in.")) return;
+                            const nextStatus = (p.status || "ACTIVE") === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
+                            const confirmText =
+                              nextStatus === "SUSPENDED"
+                                ? "Suspend this partner account? This will sign them out immediately."
+                                : "Unsuspend this partner account and allow sign-in again?";
+                            if (!window.confirm(confirmText)) return;
                             try {
-                              const r = await revokePartnerPortal(p.id);
+                              const r = await updatePartner(p.id, { status: nextStatus });
                               mergeBootstrap((b) => mergePartner(b, r.partner));
                             } catch {
-                              window.alert("Could not revoke.");
+                              window.alert(nextStatus === "SUSPENDED" ? "Could not suspend." : "Could not unsuspend.");
                             }
                           }}
                         >
-                          Revoke portal
+                          {(p.status || "ACTIVE") === "SUSPENDED" ? "Unsuspend account" : "Suspend account"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                          onClick={async () => {
+                            if (
+                              !window.confirm(
+                                "Permanently remove this partner? Leads will be unlinked and related commission rows removed."
+                              )
+                            ) {
+                              return;
+                            }
+                            await deletePartner(p.id);
+                            mergeBootstrap((b) => removePartnerCascade(b, p.id));
+                            setLastPortalKeys((prev) => {
+                              const { [p.id]: _, ...rest } = prev;
+                              return rest;
+                            });
+                          }}
+                        >
+                          Delete partner
                         </Button>
                       </div>
                       <div>

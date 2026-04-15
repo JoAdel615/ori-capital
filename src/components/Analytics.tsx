@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { config } from "../config";
 import { initGoogleAnalytics, initMetaPixel } from "../lib/analytics/bootstrap";
+import { trackOriRouteView } from "../lib/analytics/trackOriRouteView";
 
 /**
  * Loads GA4 / Meta Pixel when `VITE_GA_MEASUREMENT_ID` / `VITE_META_PIXEL_ID` are set,
@@ -9,6 +10,10 @@ import { initGoogleAnalytics, initMetaPixel } from "../lib/analytics/bootstrap";
  */
 export function Analytics() {
   const { pathname, search } = useLocation();
+
+  useEffect(() => {
+    trackOriRouteView(pathname);
+  }, [pathname]);
   const [gaReady, setGaReady] = useState(false);
   const [pixelReady, setPixelReady] = useState(false);
   const gaStarted = useRef(false);

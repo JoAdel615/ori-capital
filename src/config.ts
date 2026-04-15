@@ -18,6 +18,15 @@ export const config = {
   capitalPartnersApiUrl: env.VITE_CAPITAL_PARTNERS_API_URL || apiUrl("/api/capital-partners"),
   /** Newsletter / email capture endpoint */
   newsletterApiUrl: env.VITE_NEWSLETTER_API_URL || apiUrl("/api/newsletter"),
+  /** Optional public social URLs (footer). Empty = that icon is omitted. */
+  socialXUrl: (env.VITE_SOCIAL_X_URL || "").trim(),
+  socialLinkedinUrl: (env.VITE_SOCIAL_LINKEDIN_URL || "").trim(),
+  socialInstagramUrl: (env.VITE_SOCIAL_INSTAGRAM_URL || "").trim(),
+  socialFacebookUrl: (env.VITE_SOCIAL_FACEBOOK_URL || "").trim(),
+  socialYoutubeUrl: (env.VITE_SOCIAL_YOUTUBE_URL || "").trim(),
+  /** Optional main line for footer `tel:` link */
+  contactPhoneDisplay: (env.VITE_CONTACT_PHONE_DISPLAY || "").trim(),
+  contactPhoneTel: (env.VITE_CONTACT_PHONE_TEL || "").trim(),
   /** Strategy call booking URL */
   strategyCallUrl: env.VITE_STRATEGY_CALL_URL || "#contact",
   /** Public Calendly scheduling page for embeds (e.g. https://calendly.com/ori/consultation). Never put API tokens here. */

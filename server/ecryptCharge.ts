@@ -5,6 +5,7 @@
 
 import { computeOrderSummary, type SelectedEnrollments } from "../src/data/fundingReadinessPricing";
 import { isGatewayApproved, parseTransResponse } from "../src/lib/ecrypt/parseTransResponse";
+import { getCheckoutPricing } from "../src/lib/checkoutPromotions";
 
 export const ECRYPT_TRANSACT_URL = "https://ecrypt.transactiongateway.com/api/transact.php";
 
@@ -25,6 +26,7 @@ export interface ChargeRequestBody {
   paymentToken: string;
   enrollments: SelectedEnrollments;
   billing: BillingPayload;
+  promoCode?: string;
 }
 
 function formatAmount(dollars: number): string {
@@ -74,6 +76,10 @@ export async function chargeEnrollmentSale(
   if (summary.lines.length === 0 || summary.dueTodayTotal <= 0) {
     return { ok: false, error: "Invalid enrollment selection or amount" };
   }
+  const pricing = getCheckoutPricing(body.enrollments, body.promoCode);
+  if (pricing.dueTodayTotal <= 0) {
+    return { ok: false, error: "Order total must be greater than zero" };
+  }
 
   const billing = body.billing;
   if (
@@ -93,7 +99,7 @@ export async function chargeEnrollmentSale(
   params.set("type", "sale");
   params.set("security_key", options.securityKey);
   params.set("payment_token", token);
-  params.set("amount", formatAmount(summary.dueTodayTotal));
+  params.set("amount", formatAmount(pricing.dueTodayTotal));
   params.set("orderid", `ori_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`);
   params.set("order_description", buildOrderDescription(body.enrollments));
 

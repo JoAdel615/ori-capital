@@ -8,50 +8,45 @@ export const PARTNER_INTAKE_TYPE_OPTIONS: {
 }[] = [
   {
     value: "ACCELERATOR_INCUBATOR",
-    label: "Accelerator / Incubator",
+    label: "Accelerators & Incubators",
     hint: "Cohort programs, incubators, and startup accelerators.",
   },
   {
-    value: "BUSINESS_CONSULTANT_COACH",
-    label: "Business Consultant / Coach",
-    hint: "Advisory and coaching practices serving operators.",
+    value: "INVESTOR_VC_ANGEL",
+    label: "Investors & Angel Networks",
+    hint: "Funds, angels, and investment groups.",
   },
   {
     value: "ACCOUNTANT_BOOKKEEPER",
-    label: "Accountant / CPA / Bookkeeper",
+    label: "CPAs, Accountants & Bookkeepers",
     hint: "Tax, accounting, and bookkeeping firms.",
   },
   {
     value: "ATTORNEY",
-    label: "Attorney / Legal Advisor",
+    label: "Attorneys & Advisors",
     hint: "Business, corporate, or startup legal practices.",
   },
   {
-    value: "BANK_LENDER",
-    label: "Lender / Bank / Credit Union",
-    hint: "Institutional or alternative lending relationships.",
-  },
-  {
-    value: "INVESTOR_VC_ANGEL",
-    label: "Investor / Angel Network",
-    hint: "Funds, angels, and investment groups.",
-  },
-  {
-    value: "ECONOMIC_DEV_NONPROFIT",
-    label: "Economic Development / Nonprofit",
-    hint: "EDOs, chambers, and mission-driven organizations.",
+    value: "BUSINESS_CONSULTANT_COACH",
+    label: "Consultants & Coaches",
+    hint: "Advisory and coaching practices serving operators.",
   },
   {
     value: "COWORKING_OPERATOR",
-    label: "Real Estate Broker / Business Broker",
+    label: "Real Estate & Business Brokers",
     hint: "Brokers and real-estate partners supporting business transactions.",
   },
   {
+    value: "ECONOMIC_DEV_NONPROFIT",
+    label: "Economic Development Organizations",
+    hint: "EDOs, chambers, and mission-driven organizations.",
+  },
+  {
     value: "AGENCY_SERVICE_PROVIDER",
-    label: "Agency / Service Provider",
+    label: "Agencies & Service Providers",
     hint: "Marketing, ops, or professional services at scale.",
   },
-  { value: "OTHER", label: "Other", hint: "Describe in the notes if helpful." },
+  { value: "OTHER", label: "Other", hint: "Describe in notes if needed." },
 ];
 
 export const ROLE_TITLE_OPTIONS = [
@@ -64,12 +59,12 @@ export const ROLE_TITLE_OPTIONS = [
 ] as const;
 
 export const CLIENT_SEGMENT_OPTIONS = [
-  { value: "STARTUPS", label: "Startups" },
+  { value: "STARTUPS", label: "Founders (pre-launch)" },
   { value: "EARLY_STAGE_BUSINESSES", label: "Early-stage businesses" },
-  { value: "SMALL_BUSINESSES", label: "Small businesses" },
+  { value: "SMALL_BUSINESSES", label: "Operating small businesses" },
   { value: "GROWTH_STAGE_COMPANIES", label: "Growth-stage companies" },
   { value: "INVESTORS_OPERATORS", label: "Investors / operators" },
-  { value: "MIXED_CLIENT_BASE", label: "Mixed client base" },
+  { value: "MIXED_CLIENT_BASE", label: "Mixed" },
 ] as const;
 
 export const FUNDING_NEED_OPTIONS = [
@@ -80,18 +75,19 @@ export const FUNDING_NEED_OPTIONS = [
 ] as const;
 
 export const PARTNERSHIP_INTEREST_OPTIONS = [
-  { value: "REFERRING_CLIENTS", label: "Referring clients to Ori" },
-  { value: "NETWORK_RESOURCE", label: "Offering Ori as a resource to my network" },
-  { value: "STRATEGIC_PARTNERSHIP", label: "Exploring a strategic partnership" },
-  { value: "LEARNING_MORE", label: "Learning more about how Ori works" },
-  { value: "OTHER", label: "Other" },
+  { value: "REFERRING_CLIENTS", label: "Refer clients for funding readiness" },
+  { value: "EXTEND_SERVICES_WITH_PLATFORM", label: "Extend my services with Ori's platform" },
+  { value: "COLLABORATE_ON_CLIENT_DELIVERY", label: "Collaborate on client delivery" },
+  { value: "PROGRAM_OR_PORTFOLIO_OFFERING", label: "Offer Ori as part of my program or portfolio" },
+  { value: "REVENUE_SHARING_OPPORTUNITIES", label: "Explore revenue-sharing opportunities" },
+  { value: "NOT_SURE_YET", label: "Not sure yet" },
 ] as const;
 
 export const ESTIMATED_REFERRALS_OPTIONS = [
-  { value: "1_5", label: "1-5" },
-  { value: "5_10", label: "5-10" },
-  { value: "10_25", label: "10-25" },
-  { value: "25_PLUS", label: "25+" },
+  { value: "OCCASIONALLY", label: "Occasionally" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "FREQUENTLY", label: "Frequently" },
+  { value: "CORE_TO_OUR_WORK", label: "Core to what we do" },
 ] as const;
 
 const SEGMENT_LABEL = new Map<string, string>(CLIENT_SEGMENT_OPTIONS.map((o) => [o.value, o.label]));
@@ -108,15 +104,29 @@ export function parsePartnerIntakePayload(raw: unknown): PartnerIntakePayload | 
   const funding = String(o.fundingNeedFrequency || "").trim();
   const interest = String(o.partnershipInterest || "").trim();
   const estimatedReferrals = String(o.estimatedReferralsPerMonth || "").trim();
+  const currentClientGap = String(o.currentClientGap || "").trim();
   const role = String(o.roleTitle || "").trim();
   const notes = String(o.additionalNotes || "").trim();
+  const sourcePage = String(o.source_page || "").trim();
+  const entryCta = String(o.entry_cta || "").trim();
+  const partnerTypePreselected = String(o.partner_type_preselected || "").trim();
+  const utmSource = String(o.utm_source || "").trim();
+  const utmCampaign = String(o.utm_campaign || "").trim();
+  const referralPartner = String(o.referral_partner || "").trim();
   const out: PartnerIntakePayload = {};
   if (role) out.roleTitle = role.slice(0, 200);
   if (segments.length) out.clientSegments = segments.slice(0, 20);
   if (funding) out.fundingNeedFrequency = funding.slice(0, 80);
   if (interest) out.partnershipInterest = interest.slice(0, 80);
   if (estimatedReferrals) out.estimatedReferralsPerMonth = estimatedReferrals.slice(0, 80);
+  if (currentClientGap) out.currentClientGap = currentClientGap.slice(0, 1000);
   if (notes) out.additionalNotes = notes.slice(0, 4000);
+  if (sourcePage) out.source_page = sourcePage.slice(0, 200);
+  if (entryCta) out.entry_cta = entryCta.slice(0, 120);
+  if (partnerTypePreselected) out.partner_type_preselected = partnerTypePreselected.slice(0, 120);
+  if (utmSource) out.utm_source = utmSource.slice(0, 120);
+  if (utmCampaign) out.utm_campaign = utmCampaign.slice(0, 160);
+  if (referralPartner) out.referral_partner = referralPartner.slice(0, 200);
   return Object.keys(out).length ? out : undefined;
 }
 
@@ -148,11 +158,12 @@ export function formatPartnerIntakeSummary(i: PartnerIntakePayload | undefined):
   }
   if (i.estimatedReferralsPerMonth) {
     parts.push(
-      `Estimated referrals/month: ${
+      `How often this comes up: ${
         REFERRALS_LABEL.get(i.estimatedReferralsPerMonth) || i.estimatedReferralsPerMonth
       }`
     );
   }
+  if (i.currentClientGap) parts.push(`Where clients get stuck: ${i.currentClientGap}`);
   if (i.additionalNotes) parts.push(`Notes: ${i.additionalNotes}`);
   return parts.join(" · ");
 }

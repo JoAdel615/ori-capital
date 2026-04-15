@@ -10,6 +10,7 @@ import type { ChargeRequestBody } from "./ecryptCharge";
 import { chargeEnrollmentSale } from "./ecryptCharge";
 import type { SelectedEnrollments } from "../src/data/fundingReadinessPricing";
 import { computeOrderSummary } from "../src/data/fundingReadinessPricing";
+import { getCheckoutPricing } from "../src/lib/checkoutPromotions";
 import type { BillingPayload } from "./ecryptCharge";
 import {
   completeThreeStepSale,
@@ -25,6 +26,7 @@ interface ThreeStepSession {
   enrollments?: SelectedEnrollments;
   promoCode?: string;
   referralCode?: string;
+  paymentMethod?: "card" | "bank" | "paypal";
 }
 
 const threeStepSessions = new Map<string, ThreeStepSession>();
@@ -112,6 +114,7 @@ function syncPurchaseToBackoffice(input: {
   }
 
   const summary = computeOrderSummary((input.enrollments || {}) as SelectedEnrollments);
+  const pricing = getCheckoutPricing((input.enrollments || {}) as SelectedEnrollments, input.promoCode);
   const existingSub = state.subscriptions.find((s: any) => s.leadId === lead.id);
   if (!existingSub) {
     state.subscriptions.unshift({
@@ -128,20 +131,28 @@ function syncPurchaseToBackoffice(input: {
     });
   }
 
-  if (partnerId && summary.dueTodayTotal > 0) {
-    const rate = Number(partner.defaultCommissionRate || 0);
-    const amount = Number((summary.dueTodayTotal * rate).toFixed(2));
-    state.commissions.unshift({
-      id: id("com"),
-      partnerId,
-      relatedEntityType: "SUBSCRIPTION",
-      relatedEntityId: lead.id,
-      amount,
-      status: "PENDING",
-      earnedAt: nowIso(),
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    });
+  if (partnerId && pricing.dueTodayTotal > 0) {
+    const alreadyEarned = state.commissions.some(
+      (c: any) =>
+        String(c.partnerId || "") === String(partnerId) &&
+        c.relatedEntityType === "SUBSCRIPTION" &&
+        String(c.relatedEntityId || "") === String(lead.id)
+    );
+    if (!alreadyEarned) {
+      const rate = Number(partner.defaultCommissionRate || 0);
+      const amount = Number((pricing.dueTodayTotal * rate).toFixed(2));
+      state.commissions.unshift({
+        id: id("com"),
+        partnerId,
+        relatedEntityType: "SUBSCRIPTION",
+        relatedEntityId: lead.id,
+        amount,
+        status: "PENDING",
+        earnedAt: nowIso(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      });
+    }
   }
 
   state.activities.unshift({
@@ -278,7 +289,7 @@ export function paymentChargeMiddleware() {
         return;
       }
       const sess = threeStepSessions.get(sid)!;
-      sendJson(res, 200, { ok: true, sid, formUrl: sess.formUrl });
+      sendJson(res, 200, { ok: true, sid, formUrl: sess.formUrl, paymentMethod: sess.paymentMethod || "card" });
       return;
     }
 
@@ -305,6 +316,8 @@ export function paymentChargeMiddleware() {
         billing?: BillingPayload;
         promoCode?: string;
         referralCode?: string;
+        ref?: string;
+        paymentMethod?: "card" | "bank" | "paypal";
         returnOrigin?: string;
       } = {};
       try {
@@ -323,6 +336,7 @@ export function paymentChargeMiddleware() {
           enrollments: (body.enrollments || {}) as SelectedEnrollments,
           billing: (body.billing || {}) as BillingPayload,
           redirectUrl,
+          promoCode: String(body.promoCode || "").trim() || undefined,
         },
         {
           securityKey,
@@ -343,7 +357,11 @@ export function paymentChargeMiddleware() {
         billing: body.billing,
         enrollments: body.enrollments,
         promoCode: String(body.promoCode || "").trim() || undefined,
-        referralCode: String(body.referralCode || "").trim() || undefined,
+        referralCode: String(body.referralCode || body.ref || "").trim() || undefined,
+        paymentMethod:
+          body.paymentMethod === "bank" || body.paymentMethod === "paypal" || body.paymentMethod === "card"
+            ? body.paymentMethod
+            : "card",
       });
 
       sendJson(res, 200, {
@@ -437,7 +455,7 @@ export function paymentChargeMiddleware() {
       return;
     }
 
-    let body: Partial<ChargeRequestBody & { promoCode?: string; referralCode?: string }>;
+    let body: Partial<ChargeRequestBody & { promoCode?: string; referralCode?: string; ref?: string }>;
     try {
       body = JSON.parse(raw || "{}");
     } catch {
@@ -450,6 +468,7 @@ export function paymentChargeMiddleware() {
         paymentToken: String(body.paymentToken || ""),
         enrollments: (body.enrollments || {}) as ChargeRequestBody["enrollments"],
         billing: (body.billing || {}) as ChargeRequestBody["billing"],
+        promoCode: String(body.promoCode || "").trim() || undefined,
       },
       {
         securityKey,
@@ -473,7 +492,7 @@ export function paymentChargeMiddleware() {
       billing: body.billing,
       enrollments: body.enrollments,
       promoCode: String(body.promoCode || "").trim() || undefined,
-      referralCode: String(body.referralCode || "").trim() || undefined,
+      referralCode: String(body.referralCode || body.ref || "").trim() || undefined,
     });
   };
 }

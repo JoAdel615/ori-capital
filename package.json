@@ -3,10 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20 <25"
+  },
   "scripts": {
     "dev": "node scripts/kill-vite-ports.mjs && vite",
-    "dev:v2": "vite --port 5174 --strictPort",
     "build": "tsc -b && vite build",
+    "ci": "npm run lint && npm run test && npm run build",
     "lint": "eslint .",
     "integrations:check": "node scripts/check-integration-env.mjs",
     "test": "vitest run",
@@ -16,9 +19,12 @@
     "api:cpanel": "node server/cpanel-entry.cjs",
     "deploy:cpanel": "npm run build && node scripts/deploy-cpanel.mjs",
     "screenshots": "node scripts/screenshots.mjs",
-    "screenshots:export": "npm run build && sh -c 'npx vite preview --port 4173 --strictPort & PID=$!; sleep 4; node scripts/screenshots.mjs https://localhost:4173; kill \"$PID\" 2>/dev/null || true'"
+    "screenshots:export": "npm run build && sh -c 'npx vite preview --port 4173 --strictPort & PID=$!; sleep 4; node scripts/screenshots.mjs https://localhost:4173; kill \"$PID\" 2>/dev/null || true'",
+    "screenshots:ori-homepage": "npm run build && sh -c 'npx vite preview --port 4173 --strictPort & PID=$!; sleep 5; node scripts/ori-homepage-screenshots.mjs https://localhost:4173; kill \"$PID\" 2>/dev/null || true'",
+    "screenshots:ori-export": "npm run build && sh -c 'npx vite preview --port 4173 --strictPort & PID=$!; sleep 5; node scripts/ori-export-screenshots.mjs https://localhost:4173; kill \"$PID\" 2>/dev/null || true'"
   },
   "dependencies": {
+    "lucide-react": "^0.468.0",
     "tsx": "^4.21.0",
     "framer-motion": "^12.34.3",
     "react": "^19.2.0",
@@ -38,7 +44,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
-    "playwright": "^1.58.2",
+    "playwright": "^1.59.1",
     "tailwindcss": "^4.2.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
