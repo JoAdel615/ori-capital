@@ -2,6 +2,8 @@ import { Suspense, lazy, type ReactNode, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Analytics } from "./components/Analytics";
 import { Layout } from "./components/Layout";
+import { appRouteUrl, ROUTES } from "./utils/navigation";
+import { shouldRedirectToAppOrigin } from "./utils/routeBoundary";
 
 const AccessCapitalPage = lazy(() => import("./pages/AccessCapitalPage").then((m) => ({ default: m.AccessCapitalPage })));
 const AcceleratorEnrollmentPage = lazy(() => import("./pages/AcceleratorEnrollmentPage").then((m) => ({ default: m.AcceleratorEnrollmentPage })));
@@ -74,6 +76,25 @@ function withSuspense(node: ReactNode) {
   return <Suspense fallback={<RouteLoadingFallback />}>{node}</Suspense>;
 }
 
+function AppDomainRoute({ path, fallback }: { path: string; fallback: ReactNode }) {
+  const redirectToAppOrigin = shouldRedirectToAppOrigin(path);
+  const destination = redirectToAppOrigin ? appRouteUrl(path) : null;
+
+  useEffect(() => {
+    if (!destination) return;
+    window.location.replace(destination);
+  }, [destination]);
+
+  if (destination) {
+    return (
+      <div className="ori-container ori-section">
+        <p className="ori-type-body-muted">Redirecting to secure app...</p>
+      </div>
+    );
+  }
+  return fallback;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -84,19 +105,19 @@ function App() {
           <Route index element={withSuspense(<HomePage />)} />
 
           <Route path="management" element={withSuspense(<ManagementPage />)} />
-          <Route path="management/formation" element={withSuspense(<ManagementFormationPage />)} />
-          <Route path="management/business-profile" element={withSuspense(<ManagementBusinessProfilePage />)} />
-          <Route path="management/business-builder" element={withSuspense(<ManagementBusinessBuilderPage />)} />
-          <Route path="management/hosting" element={withSuspense(<ManagementHostingPage />)} />
-          <Route path="management/crm-growth" element={withSuspense(<ManagementCrmGrowthPage />)} />
+          <Route path="management/formation" element={<Navigate to="/management" replace />} />
+          <Route path="management/business-profile" element={<Navigate to="/management" replace />} />
+          <Route path="management/business-builder" element={<Navigate to="/management" replace />} />
+          <Route path="management/hosting" element={<Navigate to="/management" replace />} />
+          <Route path="management/crm-growth" element={<Navigate to="/management" replace />} />
 
           <Route path="consulting" element={withSuspense(<ConsultingPage />)} />
-          <Route path="consulting/coaching" element={withSuspense(<ConsultingCoachingPage />)} />
-          <Route path="consulting/structuring" element={withSuspense(<ConsultingStructuringPage />)} />
-          <Route path="consulting/capital-strategy" element={withSuspense(<ConsultingCapitalStrategyPage />)} />
-          <Route path="consulting/product-development" element={withSuspense(<ConsultingProductDevelopmentPage />)} />
-          <Route path="consulting/book" element={withSuspense(<ConsultingBookPage />)} />
-          <Route path="consulting/lifecycle/:slug" element={withSuspense(<ConsultingLifecycleLandingPage />)} />
+          <Route path="consulting/coaching" element={<Navigate to="/consulting" replace />} />
+          <Route path="consulting/structuring" element={<Navigate to="/consulting" replace />} />
+          <Route path="consulting/capital-strategy" element={<Navigate to="/consulting" replace />} />
+          <Route path="consulting/product-development" element={<Navigate to="/consulting" replace />} />
+          <Route path="consulting/book" element={<Navigate to="/consulting" replace />} />
+          <Route path="consulting/lifecycle/:slug" element={<Navigate to="/consulting" replace />} />
 
           <Route path="capital/leverage" element={withSuspense(<CapitalLeveragePage />)} />
           <Route path="capital" element={withSuspense(<CapitalPage />)} />
@@ -123,9 +144,15 @@ function App() {
           <Route path="capital-partners" element={<Navigate to="/partners" replace />} />
           <Route path="about" element={withSuspense(<AboutPage />)} />
           <Route path="contact" element={withSuspense(<ContactPage />)} />
-          <Route path="admin" element={withSuspense(<AdminPage />)} />
+          <Route
+            path="admin"
+            element={<AppDomainRoute path={ROUTES.ADMIN} fallback={withSuspense(<AdminPage />)} />}
+          />
           <Route path="partner/register" element={withSuspense(<PartnerRegisterPage />)} />
-          <Route path="partner" element={withSuspense(<PartnerPortalPage />)} />
+          <Route
+            path="partner"
+            element={<AppDomainRoute path={ROUTES.PARTNER_PORTAL} fallback={withSuspense(<PartnerPortalPage />)} />}
+          />
           <Route path="referral" element={withSuspense(<ReferralPage />)} />
           <Route path="testimonial" element={withSuspense(<TestimonialPage />)} />
           <Route path="legal/privacy" element={withSuspense(<PrivacyPage />)} />

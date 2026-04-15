@@ -1,4 +1,5 @@
 import type { NavigateFunction } from "react-router-dom";
+import { config } from "../config";
 
 /**
  * Canonical routes for the funnel. Use these everywhere for CTAs and links
@@ -71,6 +72,17 @@ export function navigateTo(
       }, 100);
     });
   }
+}
+
+/**
+ * Builds an app-domain URL for authenticated routes when configured.
+ * Returns null when no dedicated app origin is set.
+ */
+export function appRouteUrl(path: string): string | null {
+  const origin = config.appOrigin;
+  if (!origin) return null;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${origin}${normalizedPath}`;
 }
 
 /** Last non-contact SPA path, for contact-form attribution (sessionStorage). */

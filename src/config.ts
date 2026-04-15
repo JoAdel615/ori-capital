@@ -10,6 +10,8 @@ export { featureFlags, isFeatureEnabled } from "./config/features";
 export type { FeatureFlagKey } from "./config/features";
 
 export const config = {
+  /** Optional app origin for authenticated experiences (e.g. https://app.oricapitalholdings.com). */
+  appOrigin: (env.VITE_APP_ORIGIN || "").trim().replace(/\/+$/, ""),
   /** Apply for Capital form: POST to this API or use external URL */
   applyApiUrl: env.VITE_APPLY_API_URL || apiUrl("/api/apply"),
   /** If set, redirect to this URL on "Apply" CTA instead of embedded form (keeps experience embedded until submit) */

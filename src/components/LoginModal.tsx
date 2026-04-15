@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./Button";
 import { Input } from "./Input";
 import { adminLogin } from "../lib/backoffice/api";
-import { ROUTES } from "../utils/navigation";
+import { appRouteUrl, ROUTES } from "../utils/navigation";
 
 const OVERLAY_Z = 10000;
 const PANEL_Z = 10001;
@@ -43,9 +43,18 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
   if (!open || typeof document === "undefined") return null;
 
+  const goToRoute = (path: string) => {
+    const externalAppUrl = appRouteUrl(path);
+    if (externalAppUrl) {
+      window.location.assign(externalAppUrl);
+      return;
+    }
+    navigate(path);
+  };
+
   const goPartner = () => {
     onClose();
-    navigate(ROUTES.PARTNER_PORTAL);
+    goToRoute(ROUTES.PARTNER_PORTAL);
   };
 
   const handleAdminSubmit = async (e: React.FormEvent) => {
@@ -65,7 +74,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     if (ok) {
       setPassword("");
       onClose();
-      navigate(ROUTES.ADMIN);
+      goToRoute(ROUTES.ADMIN);
     } else {
       setError("Invalid password.");
     }

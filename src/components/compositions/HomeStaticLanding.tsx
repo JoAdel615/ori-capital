@@ -81,15 +81,6 @@ export function HomeStaticLanding() {
             >
               Get started
             </Button>
-            <Button
-              to={ROUTES.CONTACT}
-              variant="outline"
-              size="lg"
-              className="w-full min-w-[200px] rounded-full border-white/20 bg-transparent text-ori-text-primary hover:bg-white/[0.06] sm:w-auto"
-              onClick={() => trackOriEvent(ORI_EVENTS.HOME_PRIMARY_CTA, { cta: "hero_get_in_touch" })}
-            >
-              Get in touch
-            </Button>
           </div>
         </PageContainer>
       </section>

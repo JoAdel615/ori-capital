@@ -26,10 +26,10 @@ export function ManagementPage() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href="#management-products" size="lg">
-              Explore the platform
+              See how it works
             </Button>
             <Button to={ROUTES.GET_STARTED} size="lg" variant="outline">
-              Start your setup
+              Get started
             </Button>
           </div>
         </div>

@@ -195,6 +195,11 @@ export function ConsultingPage() {
               <p>Hands-on, in the work, where it actually counts.</p>
               <p>No theory. No slides. Just progress.</p>
             </div>
+            <div className="mt-7">
+              <Button to={ROUTES.CONTACT} size="lg">
+                Get in touch
+              </Button>
+            </div>
           </div>
           <div className="relative overflow-hidden rounded-2xl border border-ori-border/80 bg-gradient-to-br from-ori-surface-panel/90 via-ori-black/50 to-ori-surface-panel/80 p-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_28px_56px_-36px_rgba(0,0,0,0.65)] md:p-8">
             <div
