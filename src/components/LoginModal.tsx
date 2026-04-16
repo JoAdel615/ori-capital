@@ -108,7 +108,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
         {step === "choose" ? (
           <div className="mt-6 flex flex-col gap-3">
             <Button type="button" className="w-full" onClick={goPartner}>
-              Partner portal
+              Partner
             </Button>
             <Button type="button" variant="outline" className="w-full" onClick={() => setStep("admin")}>
               Admin

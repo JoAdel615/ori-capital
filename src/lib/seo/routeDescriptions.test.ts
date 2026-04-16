@@ -7,8 +7,8 @@ describe("descriptionForPath", () => {
     expect(descriptionForPath("/contact")).toContain("consulting");
   });
 
-  it("returns management copy for lifecycle routes", () => {
-    expect(descriptionForPath("/management")).toContain("formation");
+  it("returns tools copy for lifecycle routes", () => {
+    expect(descriptionForPath("/tools")).toContain("formation");
   });
 
   it("uses insights fallback for article paths", () => {

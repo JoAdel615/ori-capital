@@ -21,7 +21,7 @@ const meshHeroStyle: CSSProperties = {
   `,
 };
 
-/** Static home: hero only (site footer is omitted on `/` in Layout). */
+/** Static home: hero only. */
 export function HomeStaticLanding() {
   return (
     <div className="bg-ori-surface-base text-ori-text-primary">
@@ -65,8 +65,8 @@ export function HomeStaticLanding() {
             </span>
           </h1>
           <p className="ori-type-lead mx-auto mt-6 max-w-2xl text-pretty text-ori-text-secondary md:mt-8 md:text-xl md:leading-relaxed">
-            Ori supports founders and operators at every stage, so you can start, fund, and grow your business in one
-            place.
+            Ori supports entrepreneurs across the business lifecycle, so you can start, manage, and grow your business in
+            one place.
           </p>
         </PageContainer>
       </section>

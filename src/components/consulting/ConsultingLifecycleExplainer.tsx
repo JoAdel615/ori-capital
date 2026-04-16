@@ -183,7 +183,6 @@ export function ConsultingLifecycleExplainer() {
                   </p>
                   <h3 className="mt-2 font-display text-base font-semibold text-ori-foreground md:text-lg">{stage.title}</h3>
                   <p className="mt-2 text-xs leading-relaxed text-ori-muted md:text-sm">{stage.body}</p>
-                  <span className="mt-3 text-xs font-semibold text-ori-accent group-hover:underline">Learn more</span>
                 </div>
               </Link>
             </li>

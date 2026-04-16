@@ -126,7 +126,7 @@ export function Footer() {
   return (
     <footer id="footer" className="border-t border-ori-border bg-ori-surface-raised" role="contentinfo">
       <div className={`mx-auto w-full ${CONTAINER_MAX} ${CONTAINER_X} py-6 md:py-7`}>
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_auto_minmax(0,1fr)] lg:gap-x-8 lg:gap-y-10">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.7fr)_minmax(0,0.55fr)_minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-x-8 lg:gap-y-10">
           {/* Brand + social circles */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link
@@ -137,31 +137,48 @@ export function Footer() {
               <span>Ori Holdings</span>
             </Link>
             <p className="mt-2.5 max-w-sm text-sm leading-snug text-ori-text-secondary lg:max-w-none">
-              Ori helps you navigate every stage of your business,
-              <br />
-              so you can move from idea to enterprise without losing momentum.
+              Ori helps you navigate every stage of your business, so you can move from idea to enterprise without losing
+              momentum.
             </p>
             <SocialCircleRow items={socialItems} />
           </div>
 
-          <nav aria-labelledby="footer-links-heading">
+          <nav aria-labelledby="footer-links-heading" className="lg:justify-self-start lg:ml-2">
             <h3 id="footer-links-heading" className={colHeadingClass}>
+              Links
+            </h3>
+            <ul className="mt-2.5 space-y-1.5">
+              <li>
+                <Link to={ROUTES.CONSULTING} className={linkClass}>
+                  Services
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTES.MANAGEMENT} className={linkClass}>
+                  Tools
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTES.CAPITAL} className={linkClass}>
+                  Funding
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTES.PARTNERS} className={linkClass}>
+                  Partners
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          <nav aria-labelledby="footer-links-secondary-heading" className="lg:justify-self-start">
+            <h3 id="footer-links-secondary-heading" className={colHeadingClass}>
               Links
             </h3>
             <ul className="mt-2.5 space-y-1.5">
               <li>
                 <Link to={ROUTES.ABOUT} className={linkClass}>
                   About
-                </Link>
-              </li>
-              <li>
-                <Link to={ROUTES.CONSULTING} className={linkClass}>
-                  Consulting
-                </Link>
-              </li>
-              <li>
-                <Link to={ROUTES.INSIGHTS} className={linkClass}>
-                  Insights
                 </Link>
               </li>
               <li>
@@ -201,7 +218,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div aria-labelledby="footer-newsletter-heading">
+          <div aria-labelledby="footer-newsletter-heading" className="lg:pl-2">
             <h3 id="footer-newsletter-heading" className={colHeadingClass}>
               Stay a step ahead
             </h3>

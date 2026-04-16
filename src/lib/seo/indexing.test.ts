@@ -9,7 +9,7 @@ describe("shouldNoIndexPath", () => {
 
   it("keeps marketing routes indexable", () => {
     expect(shouldNoIndexPath("/")).toBe(false);
-    expect(shouldNoIndexPath("/management")).toBe(false);
+    expect(shouldNoIndexPath("/tools")).toBe(false);
     expect(shouldNoIndexPath("/capital")).toBe(false);
   });
 });

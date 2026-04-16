@@ -50,6 +50,7 @@ const consultingOfferCards: CriteriaItem[] = CONSULTING_OFFERS.map((offer) => {
     ...(offer.ctaLabel ? { ctaLabel: offer.ctaLabel } : {}),
   };
 });
+const consultingSupportCards: CriteriaItem[] = consultingOfferCards.map(({ to, ctaLabel, ...item }) => item);
 
 export function ConsultingPage() {
   return (
@@ -64,7 +65,7 @@ export function ConsultingPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ori-black via-ori-black/82 to-ori-black/55" />
         <div className="relative ori-container flex min-h-0 flex-1 flex-col justify-center py-16 md:py-24">
-          <p className="ori-type-eyebrow">Collaboration</p>
+          <p className="ori-type-eyebrow">Services</p>
           <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold tracking-tight text-ori-foreground md:text-5xl lg:text-6xl">
             The right decision at the right time changes everything.
           </h1>
@@ -89,7 +90,7 @@ export function ConsultingPage() {
           subtitle="Work in focused sprints or ongoing engagements, depending on what the business actually needs. Each path is defined by clear scope, priorities, and outcomes, so the business moves forward in measurable ways."
         />
         <div className="mt-10">
-          <CriteriaGrid items={consultingOfferCards} fourColumnRow />
+          <CriteriaGrid items={consultingSupportCards} fourColumnRow />
         </div>
       </PageSection>
 

@@ -3,8 +3,8 @@ import { ROUTE_TITLES, titleSegmentForPath } from "./routeTitles";
 
 describe("route title metadata", () => {
   it("includes title segments for canonical routes", () => {
-    expect(ROUTE_TITLES["/management"]).toBe("Management");
-    expect(ROUTE_TITLES["/consulting"]).toBe("Collaboration");
+    expect(ROUTE_TITLES["/tools"]).toBe("Tools");
+    expect(ROUTE_TITLES["/services"]).toBe("Services");
     expect(ROUTE_TITLES["/capital"]).toBe("Funding");
     expect(ROUTE_TITLES["/funding-readiness-survey"]).toBe("Funding Readiness Survey");
   });

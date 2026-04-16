@@ -10,41 +10,41 @@ const BY_PATH: Record<string, string> = {
   "/":
     "Build it right, run it with structure, and scale with clarity. Ori Holdings supports founders across Consulting, Management, and Funding.",
 
-  "/management":
-    "Ori Management: formation, Ori Vault (system of record), Builder, Hosting, and Growth—one operating system for operators.",
-  "/management/formation":
+  "/tools":
+    "Ori tools: formation, Ori Vault (system of record), Builder, Hosting, and Growth—one operating system for operators.",
+  "/tools/formation":
     "Start your business with the right legal structure, registrations, and compliance foundation.",
-  "/management/business-profile":
+  "/tools/business-profile":
     "Ori Vault: the source of truth for your business—identity, documents, ownership, and compliance in one structured record.",
-  "/management/business-builder":
+  "/tools/business-builder":
     "Use Ori Business Builder to validate your model, customers, and offer before scaling.",
-  "/management/hosting":
+  "/tools/hosting":
     "Launch your domain, business email, web hosting, and VoIP with voice and SMS through Ori Hosting.",
-  "/management/crm-growth":
+  "/tools/crm-growth":
     "Set up lead capture, pipeline visibility, and follow-up automations with Ori CRM & Growth.",
 
-  "/consulting":
-    "Ori Consulting provides coaching and strategic advisory for founders navigating structure, growth, and capital decisions.",
-  "/consulting/coaching":
+  "/services":
+    "Ori services provide coaching and strategic advisory for founders navigating structure, growth, and capital decisions.",
+  "/services/coaching":
     "Ori Playbooks: structured startup coaching—guided sessions plus execution Plays—so you ship outcomes, not slide decks.",
-  "/consulting/structuring":
+  "/services/structuring":
     "Management advisory for entity choices, operating systems, and scalable compliance patterns.",
-  "/consulting/capital-strategy":
+  "/services/capital-strategy":
     "Funding strategy advisory on timing, readiness, and structure before you raise.",
-  "/consulting/product-development":
+  "/services/product-development":
     "We build, not just advise—from scope to delivery, ideas become working products tied to real business outcomes.",
-  "/consulting/book": "Book an advisory session with Ori Consulting.",
-  "/consulting/lifecycle/sharpen-your-business-model":
+  "/services/book": "Book an advisory session with Ori Services.",
+  "/services/lifecycle/sharpen-your-business-model":
     "Clarify who you serve, how you win, and what drives profit—then move into execution with Ori Consulting.",
-  "/consulting/lifecycle/build-a-predictable-pipeline":
+  "/services/lifecycle/build-a-predictable-pipeline":
     "Replace guesswork with a measurable customer path: messaging, acquisition, and conversion aligned with Ori.",
-  "/consulting/lifecycle/systemize-your-operations":
+  "/services/lifecycle/systemize-your-operations":
     "Turn people, tools, and workflows into systems with clear ownership so growth creates leverage, not chaos.",
-  "/consulting/lifecycle/install-your-growth-engine":
+  "/services/lifecycle/install-your-growth-engine":
     "Track conversion, cash flow, and unit economics so decisions follow signal—supported by Ori Consulting.",
-  "/consulting/lifecycle/build-the-right-foundation":
+  "/services/lifecycle/build-the-right-foundation":
     "Structure entity, compliance, and reporting correctly from the start with Ori management advisory support.",
-  "/consulting/lifecycle/deploy-capital-strategically":
+  "/services/lifecycle/deploy-capital-strategically":
     "Time funding for when your model and operations can absorb and multiply it—with Ori at your side.",
 
   "/capital":

@@ -6,8 +6,8 @@ import { ThemeToggle } from "./ThemeToggle";
 import { ROUTES } from "../utils/navigation";
 
 const desktopNav = [
-  { to: ROUTES.CONSULTING, label: "Collaboration" },
-  { to: ROUTES.MANAGEMENT, label: "Management" },
+  { to: ROUTES.CONSULTING, label: "Services" },
+  { to: ROUTES.MANAGEMENT, label: "Tools" },
   { to: ROUTES.CAPITAL, label: "Funding" },
   { to: ROUTES.PARTNERS, label: "Partners" },
 ] as const;
@@ -20,8 +20,7 @@ function drawerExploreClass({ isActive }: { isActive: boolean }) {
 
 export function Nav() {
   const location = useLocation();
-  const partnerPortalChrome =
-    location.pathname === ROUTES.PARTNER_PORTAL || location.pathname.startsWith(`${ROUTES.PARTNER_PORTAL}/`);
+  const partnerPortalChrome = location.pathname === ROUTES.PARTNER_PORTAL;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const closeDrawer = () => setDrawerOpen(false);
@@ -38,7 +37,7 @@ export function Nav() {
         </Link>
 
         {!partnerPortalChrome ? (
-          <div className="hidden items-center gap-5 lg:flex">
+          <div className="hidden items-center gap-7 lg:flex">
             {desktopNav.map((item) => (
               <Link
                 key={item.to}
@@ -119,6 +118,16 @@ export function Nav() {
               >
                 Get Started
               </NavLink>
+              <button
+                type="button"
+                className="mt-2 block w-full rounded-lg border border-ori-border px-3 py-2.5 text-left text-sm font-semibold text-ori-foreground transition-colors hover:bg-ori-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-charcoal"
+                onClick={() => {
+                  closeDrawer();
+                  setLoginOpen(true);
+                }}
+              >
+                Login
+              </button>
             </section>
           </div>
         </div>

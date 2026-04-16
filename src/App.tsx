@@ -89,20 +89,35 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={withSuspense(<HomePage />)} />
 
-          <Route path="management" element={withSuspense(<ManagementPage />)} />
-          <Route path="management/formation" element={<Navigate to="/management" replace />} />
-          <Route path="management/business-profile" element={<Navigate to="/management" replace />} />
-          <Route path="management/business-builder" element={<Navigate to="/management" replace />} />
-          <Route path="management/hosting" element={<Navigate to="/management" replace />} />
-          <Route path="management/crm-growth" element={<Navigate to="/management" replace />} />
+          <Route path="tools" element={withSuspense(<ManagementPage />)} />
+          <Route path="tools/formation" element={<Navigate to="/tools" replace />} />
+          <Route path="tools/business-profile" element={<Navigate to="/tools" replace />} />
+          <Route path="tools/business-builder" element={<Navigate to="/tools" replace />} />
+          <Route path="tools/hosting" element={<Navigate to="/tools" replace />} />
+          <Route path="tools/crm-growth" element={<Navigate to="/tools" replace />} />
 
-          <Route path="consulting" element={withSuspense(<ConsultingPage />)} />
-          <Route path="consulting/coaching" element={<Navigate to="/consulting" replace />} />
-          <Route path="consulting/structuring" element={<Navigate to="/consulting" replace />} />
-          <Route path="consulting/capital-strategy" element={<Navigate to="/consulting" replace />} />
-          <Route path="consulting/product-development" element={<Navigate to="/consulting" replace />} />
-          <Route path="consulting/book" element={<Navigate to="/consulting" replace />} />
-          <Route path="consulting/lifecycle/:slug" element={<Navigate to="/consulting" replace />} />
+          <Route path="management" element={<Navigate to="/tools" replace />} />
+          <Route path="management/formation" element={<Navigate to="/tools" replace />} />
+          <Route path="management/business-profile" element={<Navigate to="/tools" replace />} />
+          <Route path="management/business-builder" element={<Navigate to="/tools" replace />} />
+          <Route path="management/hosting" element={<Navigate to="/tools" replace />} />
+          <Route path="management/crm-growth" element={<Navigate to="/tools" replace />} />
+
+          <Route path="services" element={withSuspense(<ConsultingPage />)} />
+          <Route path="services/coaching" element={<Navigate to="/services" replace />} />
+          <Route path="services/structuring" element={<Navigate to="/services" replace />} />
+          <Route path="services/capital-strategy" element={<Navigate to="/services" replace />} />
+          <Route path="services/product-development" element={<Navigate to="/services" replace />} />
+          <Route path="services/book" element={<Navigate to="/services" replace />} />
+          <Route path="services/lifecycle/:slug" element={<Navigate to="/services" replace />} />
+
+          <Route path="consulting" element={<Navigate to="/services" replace />} />
+          <Route path="consulting/coaching" element={<Navigate to="/services" replace />} />
+          <Route path="consulting/structuring" element={<Navigate to="/services" replace />} />
+          <Route path="consulting/capital-strategy" element={<Navigate to="/services" replace />} />
+          <Route path="consulting/product-development" element={<Navigate to="/services" replace />} />
+          <Route path="consulting/book" element={<Navigate to="/services" replace />} />
+          <Route path="consulting/lifecycle/:slug" element={<Navigate to="/services" replace />} />
 
           <Route path="capital/leverage" element={withSuspense(<CapitalLeveragePage />)} />
           <Route path="capital" element={withSuspense(<CapitalPage />)} />
@@ -119,9 +134,9 @@ function App() {
           <Route path="capital-readiness" element={<Navigate to="/funding-readiness" replace />} />
           <Route path="readiness" element={<Navigate to="/funding-readiness" replace />} />
 
-          <Route path="approach" element={<Navigate to="/consulting" replace />} />
-          <Route path="strategy" element={<Navigate to="/consulting" replace />} />
-          <Route path="model" element={<Navigate to="/consulting" replace />} />
+          <Route path="approach" element={<Navigate to="/services" replace />} />
+          <Route path="strategy" element={<Navigate to="/services" replace />} />
+          <Route path="model" element={<Navigate to="/services" replace />} />
 
           <Route path="insights" element={withSuspense(<InsightsPage />)} />
           <Route path="insights/:slug" element={withSuspense(<InsightPostPage />)} />

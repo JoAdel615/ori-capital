@@ -19,17 +19,17 @@ describe("trackOriRouteView", () => {
   });
 
   it("fires pillar events for hub paths", () => {
-    trackOriRouteView("/management");
+    trackOriRouteView("/tools");
     expect(trackSpy).toHaveBeenCalledWith(ORI_EVENTS.VIEW_PILLAR_MANAGEMENT, undefined);
 
-    trackOriRouteView("/consulting");
+    trackOriRouteView("/services");
     expect(trackSpy).toHaveBeenCalledWith(ORI_EVENTS.VIEW_PILLAR_CONSULTING, undefined);
   });
 
   it("includes path for management modules", () => {
-    trackOriRouteView("/management/formation");
+    trackOriRouteView("/tools/formation");
     expect(trackSpy).toHaveBeenCalledWith(ORI_EVENTS.VIEW_MANAGEMENT_MODULE, {
-      path: "/management/formation",
+      path: "/tools/formation",
     });
   });
 });

@@ -15,37 +15,9 @@ import { FundingCounter } from "../components/FundingCounter";
 import { FundingSpectrum } from "../components/FundingSpectrum";
 import { ReadinessDemoPreview } from "../components/home/ReadinessDemoPreview";
 import { PageSection, SectionHeading } from "../components/system";
-import {
-  ResourceCardGrid,
-  TrustSectionIntro,
-  type ResourceItem,
-} from "../components/trust/TrustElements";
 import { CAPITAL_IMAGE_SET, type ImageAsset } from "../constants/siteImagery";
 import { config } from "../config";
-import { blogPosts, getPostCoverSrc } from "../data/blog";
 import { ROUTES } from "../utils/navigation";
-
-const CAPITAL_LEARN_SLUGS = [
-  "what-lenders-look-at-before-approving-financing",
-  "why-businesses-get-denied",
-  "business-credit-explained",
-] as const;
-
-/** Capital page card copy (links still target the same insight posts). */
-const CAPITAL_LEARN_CARD_OVERRIDES: Record<(typeof CAPITAL_LEARN_SLUGS)[number], { title: string; preview: string }> = {
-  "what-lenders-look-at-before-approving-financing": {
-    title: "What lenders see that you don't",
-    preview: "The signals driving approvals—and where most businesses fall short.",
-  },
-  "why-businesses-get-denied": {
-    title: "The real reason businesses get denied",
-    preview: "It's not just credit. It's structure, timing, and missing signals.",
-  },
-  "business-credit-explained": {
-    title: "What makes a business fundable",
-    preview: "How to position your business so capital becomes accessible, not uncertain.",
-  },
-};
 
 const PROCESS_STEPS: { step: string; title: string; body: string; icon: LucideIcon }[] = [
   {
@@ -142,25 +114,6 @@ const FUNDING_ACCESS_SIGNALS: { title: string; body: string; icon: LucideIcon }[
     icon: Landmark,
   },
 ] as const;
-
-function capitalLearnFundingCards(): ResourceItem[] {
-  return CAPITAL_LEARN_SLUGS.flatMap((slug) => {
-    const post = blogPosts.find((p) => p.slug === slug);
-    const src = post ? getPostCoverSrc(post) : undefined;
-    if (!post || !src) return [];
-    const override = CAPITAL_LEARN_CARD_OVERRIDES[slug];
-    return [
-      {
-        title: override.title,
-        preview: override.preview,
-        category: post.category,
-        to: `/insights/${post.slug}`,
-        image: src,
-        imageAlt: override.title,
-      },
-    ];
-  });
-}
 
 export function CapitalPage() {
   return (
@@ -365,14 +318,6 @@ export function CapitalPage() {
           <FundingCounter />
         </PageSection>
       ) : null}
-
-      <PageSection className="bg-ori-black section-divider">
-        <TrustSectionIntro
-          title="Most businesses don&apos;t get funded. Here&apos;s why."
-          subtitle="Most businesses apply too early, too late, or without the right signals. Learn how to align your business with how capital actually moves."
-        />
-        <ResourceCardGrid items={capitalLearnFundingCards()} />
-      </PageSection>
 
       <FundingMapClosingSection
         title="Not sure where you stand? Let&apos;s map it out."

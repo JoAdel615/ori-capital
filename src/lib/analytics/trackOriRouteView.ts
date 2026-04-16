@@ -5,10 +5,10 @@ import { ORI_EVENTS, trackOriEvent } from "./oriEvents";
  */
 export function trackOriRouteView(pathname: string): void {
   switch (pathname) {
-    case "/management":
+    case "/tools":
       trackOriEvent(ORI_EVENTS.VIEW_PILLAR_MANAGEMENT);
       return;
-    case "/consulting":
+    case "/services":
       trackOriEvent(ORI_EVENTS.VIEW_PILLAR_CONSULTING);
       return;
     case "/capital":
@@ -25,18 +25,18 @@ export function trackOriRouteView(pathname: string): void {
       break;
   }
 
-  if (pathname.startsWith("/management/")) {
+  if (pathname.startsWith("/tools/")) {
     trackOriEvent(ORI_EVENTS.VIEW_MANAGEMENT_MODULE, { path: pathname });
     return;
   }
 
   if (
-    pathname === "/consulting/coaching" ||
-    pathname === "/consulting/structuring" ||
-    pathname === "/consulting/capital-strategy" ||
-    pathname === "/consulting/product-development" ||
-    pathname === "/consulting/book" ||
-    pathname.startsWith("/consulting/lifecycle/")
+    pathname === "/services/coaching" ||
+    pathname === "/services/structuring" ||
+    pathname === "/services/capital-strategy" ||
+    pathname === "/services/product-development" ||
+    pathname === "/services/book" ||
+    pathname.startsWith("/services/lifecycle/")
   ) {
     trackOriEvent(ORI_EVENTS.VIEW_CONSULTING_OFFER, { path: pathname });
   }

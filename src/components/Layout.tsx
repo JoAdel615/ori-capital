@@ -41,7 +41,7 @@ export function Layout() {
           <Outlet />
         </RouteErrorBoundary>
       </main>
-      {pathname !== ROUTES.HOME ? <Footer /> : null}
+      <Footer />
       <JsonLd />
     </div>
   );

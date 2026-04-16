@@ -14,7 +14,7 @@ export function ManagementPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ori-black via-ori-black/82 to-ori-black/55" />
         <div className="relative ori-container flex min-h-0 flex-1 flex-col justify-center py-16 md:py-24">
-          <p className="ori-type-eyebrow">Management</p>
+          <p className="ori-type-eyebrow">Tools</p>
           <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold tracking-tight text-ori-foreground md:text-5xl lg:text-6xl">
             More hustle isn&apos;t the answer. Structure is.
           </h1>
