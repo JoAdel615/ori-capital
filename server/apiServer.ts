@@ -11,7 +11,6 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { loadEnv } from "vite";
 import { attachBackOfficeRoutes } from "./backofficeStore";
 import { paymentChargeMiddleware } from "./paymentMiddleware";
 import { attachReadinessRoutes } from "./readinessMiddleware";
@@ -36,12 +35,47 @@ function mergeVaultIntegrationsEnv(): void {
     ) {
       val = val.slice(1, -1);
     }
-    if (key) process.env[key] = val;
+    // Never override values already provided by the host (e.g. cPanel “Environment variables”).
+    if (key && process.env[key] === undefined) process.env[key] = val;
   }
 }
 
+function parseEnvFile(filePath: string): Record<string, string> {
+  if (!fs.existsSync(filePath)) return {};
+  const out: Record<string, string> = {};
+  const raw = fs.readFileSync(filePath, "utf8");
+  for (const line of raw.split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const eq = t.indexOf("=");
+    if (eq <= 0) continue;
+    const key = t.slice(0, eq).trim();
+    let val = t.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (key) out[key] = val;
+  }
+  return out;
+}
+
+function loadRuntimeEnv(mode: string): Record<string, string> {
+  const cwd = process.cwd();
+  const merged: Record<string, string> = {};
+  const candidates = [".env", ".env.local", `.env.${mode}`, `.env.${mode}.local`];
+  for (const name of candidates) {
+    const file = path.join(cwd, name);
+    const parsed = parseEnvFile(file);
+    Object.assign(merged, parsed);
+  }
+  return merged;
+}
+
 function applyEnvToProcess(mode: string): void {
-  const fromFiles = loadEnv(mode, process.cwd(), "");
+  const fromFiles = loadRuntimeEnv(mode);
   for (const key of Object.keys(fromFiles)) {
     if (process.env[key] === undefined) process.env[key] = fromFiles[key];
   }

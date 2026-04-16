@@ -29,24 +29,9 @@ const PartnerRegisterPage = lazy(() => import("./pages/PartnerRegisterPage").the
 const PreQualifyPage = lazy(() => import("./pages/PreQualifyPage").then((m) => ({ default: m.PreQualifyPage })));
 const ReferralPage = lazy(() => import("./pages/ReferralPage").then((m) => ({ default: m.ReferralPage })));
 const TestimonialPage = lazy(() => import("./pages/TestimonialPage").then((m) => ({ default: m.TestimonialPage })));
-const ConsultingBookPage = lazy(() => import("./pages/consulting/ConsultingBookPage").then((m) => ({ default: m.ConsultingBookPage })));
-const ConsultingLifecycleLandingPage = lazy(() =>
-  import("./pages/consulting/ConsultingLifecycleLandingPage").then((m) => ({ default: m.ConsultingLifecycleLandingPage })),
-);
-const ConsultingCapitalStrategyPage = lazy(() => import("./pages/consulting/ConsultingCapitalStrategyPage").then((m) => ({ default: m.ConsultingCapitalStrategyPage })));
-const ConsultingProductDevelopmentPage = lazy(() =>
-  import("./pages/consulting/ConsultingProductDevelopmentPage").then((m) => ({ default: m.ConsultingProductDevelopmentPage })),
-);
-const ConsultingCoachingPage = lazy(() => import("./pages/consulting/ConsultingCoachingPage").then((m) => ({ default: m.ConsultingCoachingPage })));
-const ConsultingStructuringPage = lazy(() => import("./pages/consulting/ConsultingStructuringPage").then((m) => ({ default: m.ConsultingStructuringPage })));
 const DisclosuresPage = lazy(() => import("./pages/legal/DisclosuresPage").then((m) => ({ default: m.DisclosuresPage })));
 const PrivacyPage = lazy(() => import("./pages/legal/PrivacyPage").then((m) => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("./pages/legal/TermsPage").then((m) => ({ default: m.TermsPage })));
-const ManagementBusinessBuilderPage = lazy(() => import("./pages/management/ManagementBusinessBuilderPage").then((m) => ({ default: m.ManagementBusinessBuilderPage })));
-const ManagementBusinessProfilePage = lazy(() => import("./pages/management/ManagementBusinessProfilePage").then((m) => ({ default: m.ManagementBusinessProfilePage })));
-const ManagementCrmGrowthPage = lazy(() => import("./pages/management/ManagementCrmGrowthPage").then((m) => ({ default: m.ManagementCrmGrowthPage })));
-const ManagementFormationPage = lazy(() => import("./pages/management/ManagementFormationPage").then((m) => ({ default: m.ManagementFormationPage })));
-const ManagementHostingPage = lazy(() => import("./pages/management/ManagementHostingPage").then((m) => ({ default: m.ManagementHostingPage })));
 
 function ScrollToTopOnRouteChange() {
   const { pathname, hash } = useLocation();

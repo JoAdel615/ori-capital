@@ -19,6 +19,7 @@
     "api": "tsx server/apiServer.ts",
     "api:cpanel": "node server/cpanel-entry.cjs",
     "deploy:cpanel": "npm run build && node scripts/deploy-cpanel.mjs",
+    "sync:cpanel:api": "bash scripts/sync-api-cpanel.sh",
     "screenshots": "node scripts/screenshots.mjs",
     "screenshots:export": "npm run build && sh -c 'npx vite preview --port 4173 --strictPort & PID=$!; sleep 4; node scripts/screenshots.mjs https://localhost:4173; kill \"$PID\" 2>/dev/null || true'",
     "screenshots:ori-homepage": "npm run build && sh -c 'npx vite preview --port 4173 --strictPort & PID=$!; sleep 5; node scripts/ori-homepage-screenshots.mjs https://localhost:4173; kill \"$PID\" 2>/dev/null || true'",

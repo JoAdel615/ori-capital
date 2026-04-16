@@ -36,7 +36,8 @@ function mergeVaultIntegrationsEnv(): void {
     ) {
       val = val.slice(1, -1);
     }
-    if (key) process.env[key] = val;
+    // Never override values already provided by the host (e.g. cPanel “Environment variables”).
+    if (key && process.env[key] === undefined) process.env[key] = val;
   }
 }
 

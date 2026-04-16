@@ -124,78 +124,83 @@ async function main() {
     ...(insecure ? { connect: { rejectUnauthorized: false } } : {}),
   });
 
-  /** @type {Map<string, { path: string, name: string }[]>} */
-  const byDir = new Map();
-  for (const abs of files) {
-    const rel = relative(distDir, abs);
-    const dirRel = posixDir(dirname(rel));
-    const cpanelDir = dirRel ? `${uploadRoot}/${dirRel}` : uploadRoot;
-    const fileName = basename(rel);
-    if (!byDir.has(cpanelDir)) byDir.set(cpanelDir, []);
-    byDir.get(cpanelDir).push({ path: abs, name: fileName });
-  }
+  try {
+    /** @type {Map<string, { path: string, name: string }[]>} */
+    const byDir = new Map();
+    for (const abs of files) {
+      const rel = relative(distDir, abs);
+      const dirRel = posixDir(dirname(rel));
+      const cpanelDir = dirRel ? `${uploadRoot}/${dirRel}` : uploadRoot;
+      const fileName = basename(rel);
+      if (!byDir.has(cpanelDir)) byDir.set(cpanelDir, []);
+      byDir.get(cpanelDir).push({ path: abs, name: fileName });
+    }
 
-  /** One file per request avoids huge multipart bodies (e.g. multiple videos) and reduces timeouts. */
-  const BATCH = 1;
-  let uploaded = 0;
+    /** One file per request avoids huge multipart bodies (e.g. multiple videos) and reduces timeouts. */
+    const BATCH = 1;
+    let uploaded = 0;
 
-  for (const [cpanelDir, list] of byDir) {
-    for (let i = 0; i < list.length; i += BATCH) {
-      const chunk = list.slice(i, i + BATCH);
-      /** Undici `fetch` expects undici’s FormData/File for reliable multipart encoding. */
-      const form = new FormData();
-      form.set("dir", cpanelDir);
-      form.set("overwrite", "1");
-      let n = 1;
-      for (const { path: filePath, name } of chunk) {
-        const buf = readFileSync(filePath);
-        form.set(`file-${n}`, new File([buf], name, { type: "application/octet-stream" }));
-        n += 1;
-      }
+    for (const [cpanelDir, list] of byDir) {
+      for (let i = 0; i < list.length; i += BATCH) {
+        const chunk = list.slice(i, i + BATCH);
+        /** Undici `fetch` expects undici’s FormData/File for reliable multipart encoding. */
+        const form = new FormData();
+        form.set("dir", cpanelDir);
+        form.set("overwrite", "1");
+        let n = 1;
+        for (const { path: filePath, name } of chunk) {
+          const buf = readFileSync(filePath);
+          form.set(`file-${n}`, new File([buf], name, { type: "application/octet-stream" }));
+          n += 1;
+        }
 
-      const res = await undiciFetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: authHeader,
-        },
-        body: form,
-        dispatcher: uploadAgent,
-      });
+        const res = await undiciFetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+          },
+          body: form,
+          dispatcher: uploadAgent,
+        });
 
-      const text = await res.text();
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        console.error(`HTTP ${res.status} (non-JSON):`, text.slice(0, 500));
-        process.exit(1);
-      }
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch {
+          console.error(`HTTP ${res.status} (non-JSON):`, text.slice(0, 500));
+          process.exit(1);
+        }
 
-      if (!res.ok) {
-        console.error(`HTTP ${res.status}:`, JSON.stringify(json, null, 2));
-        process.exit(1);
-      }
+        if (!res.ok) {
+          console.error(`HTTP ${res.status}:`, JSON.stringify(json, null, 2));
+          process.exit(1);
+        }
 
-      const status = json.status;
-      if (status !== 1) {
-        console.error("cPanel API error:", JSON.stringify(json, null, 2));
-        process.exit(1);
-      }
+        const status = json.status;
+        if (status !== 1) {
+          console.error("cPanel API error:", JSON.stringify(json, null, 2));
+          process.exit(1);
+        }
 
-      for (const { name } of chunk) {
-        console.log(`  ok  ${cpanelDir}/${name}`);
-        uploaded += 1;
+        for (const { name } of chunk) {
+          console.log(`  ok  ${cpanelDir}/${name}`);
+          uploaded += 1;
+        }
       }
     }
-  }
 
-  console.log(`\nUploaded ${uploaded} files to https://${host}/ (${uploadRoot})`);
-  if (skipped.length) {
-    console.log(`Skipped ${skipped.length} oversized file(s).`);
+    console.log(`\nUploaded ${uploaded} files to https://${host}/ (${uploadRoot})`);
+    if (skipped.length) {
+      console.log(`Skipped ${skipped.length} oversized file(s).`);
+    }
+    console.log(
+      "Note: /api/* forms need a backend or VITE_* URLs pointed at a live API — static hosting alone will not run Node middleware."
+    );
+  } finally {
+    // Undici keeps the dispatcher sockets open unless explicitly closed; without this, Node can hang on exit.
+    await uploadAgent.close().catch(() => {});
   }
-  console.log(
-    "Note: /api/* forms need a backend or VITE_* URLs pointed at a live API — static hosting alone will not run Node middleware."
-  );
 }
 
 main().catch((err) => {
