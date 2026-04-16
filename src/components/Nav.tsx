@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Drawer } from "./Drawer";
 import { LoginModal } from "./LoginModal";
-import { NavMenuAction } from "./NavMenuAction";
 import { ThemeToggle } from "./ThemeToggle";
 import { ROUTES } from "../utils/navigation";
 
@@ -13,31 +12,9 @@ const desktopNav = [
   { to: ROUTES.PARTNERS, label: "Partners" },
 ] as const;
 
-const managementProductLinks = [
-  { to: ROUTES.MANAGEMENT_FORMATION, label: "Formation & Compliance" },
-  { to: ROUTES.MANAGEMENT_BUSINESS_PROFILE, label: "Ori Vault" },
-  { to: ROUTES.MANAGEMENT_BUSINESS_BUILDER, label: "Business Builder" },
-  { to: ROUTES.MANAGEMENT_HOSTING, label: "Web & Email" },
-  { to: ROUTES.MANAGEMENT_CRM_GROWTH, label: "CRM & Growth" },
-] as const;
-
-const collaborationProductLinks = [
-  { to: ROUTES.CONSULTING_COACHING, label: "Startup Coaching" },
-  { to: ROUTES.CONSULTING_PRODUCT_DEVELOPMENT, label: "Product development" },
-  { to: ROUTES.CONSULTING_STRUCTURING, label: "Management Advisory" },
-  { to: ROUTES.CONSULTING_CAPITAL_STRATEGY, label: "Funding Strategy" },
-  { to: ROUTES.CONSULTING_BOOK, label: "Book session" },
-] as const;
-
 function drawerExploreClass({ isActive }: { isActive: boolean }) {
   return `block rounded-lg px-3 py-2.5 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-charcoal ${
     isActive ? "border-l-2 border-ori-accent bg-ori-surface pl-[10px] text-ori-accent" : "border-l-2 border-transparent text-ori-foreground hover:bg-ori-surface"
-  }`;
-}
-
-function drawerProductClass({ isActive }: { isActive: boolean }) {
-  return `block rounded-md px-2 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-charcoal ${
-    isActive ? "border-l-2 border-ori-accent bg-ori-surface pl-[6px] font-medium text-ori-accent" : "border-l-2 border-transparent text-ori-muted hover:bg-ori-surface hover:text-ori-foreground"
   }`;
 }
 
@@ -48,11 +25,6 @@ export function Nav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const closeDrawer = () => setDrawerOpen(false);
-
-  const openLogin = () => {
-    closeDrawer();
-    setLoginOpen(true);
-  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-ori-border bg-ori-black/90 backdrop-blur-md">
@@ -148,42 +120,6 @@ export function Nav() {
                 Get Started
               </NavLink>
             </section>
-
-            <section aria-label="Product pages">
-              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-ori-muted">Products</p>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <p className="mb-1.5 px-1 text-[0.625rem] font-semibold uppercase tracking-wider text-ori-muted/90">
-                    Management
-                  </p>
-                  <ul className="space-y-0.5">
-                    {managementProductLinks.map((item) => (
-                      <li key={item.to}>
-                        <NavLink to={item.to} className={drawerProductClass} onClick={closeDrawer}>
-                          {item.label}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="mb-1.5 px-1 text-[0.625rem] font-semibold uppercase tracking-wider text-ori-muted/90">
-                    Collaboration
-                  </p>
-                  <ul className="space-y-0.5">
-                    {collaborationProductLinks.map((item) => (
-                      <li key={item.to}>
-                        <NavLink to={item.to} className={drawerProductClass} onClick={closeDrawer}>
-                          {item.label}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            <NavMenuAction label="Login" description="Partner portal or admin" onClick={openLogin} />
           </div>
         </div>
       </Drawer>
