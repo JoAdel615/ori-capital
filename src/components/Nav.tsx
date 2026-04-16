@@ -82,7 +82,7 @@ export function Nav() {
         <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
           {!partnerPortalChrome ? (
             <Link
-              to={ROUTES.GET_STARTED}
+              to={ROUTES.CONTACT}
               className="hidden shrink-0 rounded-xl bg-ori-accent px-5 py-2.5 text-sm font-semibold text-ori-black hover:bg-ori-accent-dim md:inline-block"
             >
               Get Started
@@ -141,7 +141,7 @@ export function Nav() {
                 ))}
               </ul>
               <NavLink
-                to={ROUTES.GET_STARTED}
+                to={ROUTES.CONTACT}
                 className="mt-3 block rounded-lg bg-ori-accent px-3 py-2.5 text-center text-sm font-semibold text-ori-black transition-colors hover:bg-ori-accent-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ori-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ori-charcoal md:hidden"
                 onClick={closeDrawer}
               >

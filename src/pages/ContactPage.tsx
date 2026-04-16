@@ -540,8 +540,7 @@ export function ContactPage() {
         />
         <PageSection variant="loose" className="relative z-[1] bg-transparent">
           <div className="max-w-3xl text-center md:text-left">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ori-accent">Get started</p>
-            <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-ori-foreground md:text-4xl">
               Start the conversation
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-ori-foreground/85">

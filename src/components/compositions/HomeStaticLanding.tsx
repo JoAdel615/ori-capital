@@ -1,9 +1,6 @@
 import type { CSSProperties } from "react";
-import { Button } from "../Button";
 import { PageContainer } from "../system/PageContainer";
 import { HOME_HERO_BACKGROUND } from "../../constants/siteImagery";
-import { ORI_EVENTS, trackOriEvent } from "../../lib/analytics/oriEvents";
-import { ROUTES } from "../../utils/navigation";
 
 const hairline = "border-white/[0.08]";
 
@@ -71,17 +68,6 @@ export function HomeStaticLanding() {
             Ori supports founders and operators at every stage, so you can start, fund, and grow your business in one
             place.
           </p>
-
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4">
-            <Button
-              to={ROUTES.GET_STARTED}
-              size="lg"
-              className="w-full min-w-[200px] rounded-full px-10 sm:w-auto"
-              onClick={() => trackOriEvent(ORI_EVENTS.HOME_PRIMARY_CTA, { cta: "hero_get_started" })}
-            >
-              Get started
-            </Button>
-          </div>
         </PageContainer>
       </section>
     </div>

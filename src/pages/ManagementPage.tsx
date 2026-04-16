@@ -1,8 +1,6 @@
 import { Button } from "../components/Button";
 import { ManagementProductSections } from "../components/management/ManagementProductSections";
 import { MANAGEMENT_HUB_HERO_BACKDROP } from "../constants/siteImagery";
-import { ROUTES } from "../utils/navigation";
-
 export function ManagementPage() {
   return (
     <>
@@ -27,9 +25,6 @@ export function ManagementPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href="#management-products" size="lg">
               See how it works
-            </Button>
-            <Button to={ROUTES.GET_STARTED} size="lg" variant="outline">
-              Get started
             </Button>
           </div>
         </div>

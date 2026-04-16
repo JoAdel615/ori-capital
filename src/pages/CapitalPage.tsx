@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/Button";
+import { FundingMapClosingSection } from "../components/compositions";
 import { FundingCounter } from "../components/FundingCounter";
 import { FundingSpectrum } from "../components/FundingSpectrum";
 import { ReadinessDemoPreview } from "../components/home/ReadinessDemoPreview";
@@ -372,6 +373,18 @@ export function CapitalPage() {
         />
         <ResourceCardGrid items={capitalLearnFundingCards()} />
       </PageSection>
+
+      <FundingMapClosingSection
+        title="Not sure where you stand? Let&apos;s map it out."
+        body={
+          <>
+            Whether you&apos;re ready for funding or still putting the pieces together, we&apos;ll help you understand your
+            position and the right next move.
+          </>
+        }
+        ctaLabel="Start the conversation"
+        ctaTo={ROUTES.CONTACT}
+      />
 
     </>
   );

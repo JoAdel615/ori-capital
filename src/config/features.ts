@@ -10,7 +10,8 @@ export const featureFlags = {
     env.VITE_FEATURE_FUNDING_GAP_ILLUSTRATION === "0"
       ? false
       : (import.meta.env.DEV || env.VITE_FEATURE_FUNDING_GAP_ILLUSTRATION === "1"),
-  showFundingCounter: env.VITE_SHOW_FUNDING_COUNTER !== "0",
+  /** Hidden by default; set `VITE_SHOW_FUNDING_COUNTER=1` to show. */
+  showFundingCounter: env.VITE_SHOW_FUNDING_COUNTER === "1",
   showTestimonials: env.VITE_SHOW_TESTIMONIALS !== "0",
 } as const;
 

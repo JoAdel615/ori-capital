@@ -2,7 +2,7 @@
  * Funding counter: capital deployed through Ori. Tone-aligned copy, hero-level layout.
  * Numbers count up when the section scrolls into view.
  * Values come from Back Office when the public API is available; otherwise local defaults + browser testimonial totals.
- * Toggle via config.featureFlags.showFundingCounter.
+ * Toggle via config.featureFlags.showFundingCounter (off unless `VITE_SHOW_FUNDING_COUNTER=1`).
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
