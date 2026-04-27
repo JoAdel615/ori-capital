@@ -61,27 +61,27 @@ const PROGRAM_COMPONENTS: {
   icon: LucideIcon;
 }[] = [
   {
-    title: "Profile analysis",
+    title: "Profile Intelligence",
     description:
-      "Review your current credit profile through Credit Repair Cloud so issues, history, and weak points are visible, not guessed.",
+      "Get a clear view of your current financial and business profile, so strengths, gaps, and risks are visible, not assumed.",
     icon: FileSearch,
   },
   {
-    title: "Fundability factors",
+    title: "Fundability Signals",
     description:
-      "Use Credit Suite criteria to see what lenders evaluate beyond a headline score: utilization, inquiries, history, and positioning.",
+      "Understand what lenders actually evaluate, beyond a score, like utilization, inquiries, history, and positioning.",
     icon: Gauge,
   },
   {
-    title: "Guided plan",
+    title: "Execution Roadmap",
     description:
-      "Get a structured improvement plan so you know what to fix first, what can wait, and how to move toward approval.",
+      "Follow a structured roadmap that shows what to fix first, what can wait, and how to move toward approval efficiently.",
     icon: Route,
   },
   {
-    title: "Ongoing support",
+    title: "Guided Support",
     description:
-      "Stay aligned with guided support as you improve your profile and prepare for your next funding move.",
+      "Stay aligned as you improve your profile, with continued guidance as you prepare for your next funding move.",
     icon: Headphones,
   },
 ];
@@ -235,11 +235,11 @@ export function IndividualReadinessPage() {
               subtitle={
                 <>
                   <p>
-                    A defined system: tools for visibility, criteria for fundability, and guided execution, so you are not guessing
-                    what &quot;ready&quot; means.
+                    A structured system designed to make you fundable, with visibility into your profile, clarity on what matters,
+                    and a plan to move forward with confidence.
                   </p>
                   <p className="mt-4">
-                    Guided: not a passive course. You get direction, checkpoints, and a plan you can execute.
+                    This isn&apos;t guesswork. It&apos;s guided execution.
                   </p>
                 </>
               }
